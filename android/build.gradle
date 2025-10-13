@@ -1,0 +1,56 @@
+// =======================================================
+//  Top-level Gradle configuration – hard-lock Java 17
+// =======================================================
+gradle.settingsEvaluated {
+    gradle.rootProject.extensions.extraProperties.set(
+        "org.gradle.java.installations.auto-download", false
+    )
+}
+
+gradle.projectsLoaded {
+    logger.lifecycle("🔒 Forcing all Gradle toolchains to Java 21")
+    gradle.allprojects {
+        tasks.withType(JavaCompile).configureEach {
+            sourceCompatibility = JavaVersion.VERSION_21
+            targetCompatibility = JavaVersion.VERSION_21
+            options.release = 21
+        }
+    }
+}
+
+// =======================================================
+//  Standard Android build setup
+// =======================================================
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.3.2'
+        classpath 'com.google.gms:google-services:4.4.2'
+    }
+}
+
+apply from: "variables.gradle"
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    // secondary safety net for Java 17
+    plugins.withType(JavaPlugin).configureEach {
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(21)
+            }
+        }
+    }
+}
+
+// Clean task
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}

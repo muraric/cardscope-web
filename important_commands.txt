@@ -1,0 +1,5 @@
+***To Reset the key if the device is not authorized
+Remove-Item "$env:USERPROFILE\.android\adbkey*" -Force
+Remove-Item "$env:USERPROFILE\.android\adbkey*" -Force -ErrorAction SilentlyContinue
+adb kill-server
+adb start-server

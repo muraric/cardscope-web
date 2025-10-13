@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ✅ Custom safe-area utility (adds notch/status-bar padding) */
+@layer utilities {
+    .safe-area {
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+}
+
+
+
+
+/* Global typography */
+h1 {
+    @apply text-2xl sm:text-3xl font-bold text-gray-900;
+}
+h2 {
+    @apply text-xl sm:text-2xl font-semibold text-gray-800;
+}
+h3 {
+    @apply text-lg sm:text-xl font-semibold text-gray-700;
+}
+p {
+    @apply text-sm sm:text-base text-gray-600;
+}
+
+/* Reusable button styles */
+.btn {
+    @apply px-4 py-2 rounded-lg font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-1;
+}
+
+.btn-primary {
+    @apply bg-brand-blue text-white hover:bg-blue-700 focus:ring-blue-500;
+}
+
+.btn-success {
+    @apply bg-brand-green text-white hover:bg-green-700 focus:ring-green-500;
+}
+
+.btn-danger {
+    @apply bg-brand-red text-white hover:bg-red-700 focus:ring-red-500;
+}
+
+.btn-secondary {
+    @apply bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-400;
+}
