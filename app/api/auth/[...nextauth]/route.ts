@@ -2,11 +2,21 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-declare module "next-auth" {
-    interface Profile {
-        picture?: string;
-    }
+interface GoogleProfile {
+    email?: string;
+    name?: string;
+    picture?: string;
+    sub?: string;
 }
+
+const googleProfile = profile as GoogleProfile;
+
+await api.post("/api/auth/google-login", {
+    email: user.email,
+    name: user.name,
+    image: user.image || googleProfile.picture || null,
+});
+
 
 const handler = NextAuth({
     providers: [
