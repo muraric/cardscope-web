@@ -50,7 +50,7 @@ const handler = NextAuth({
             }
         },
 
-        async redirect({ url, baseUrl }) {
+        async redirect() {
             // ✅ Always redirect to home after successful login
             return `/`;
         },
@@ -67,11 +67,15 @@ const handler = NextAuth({
         },
 
         async session({ session, token }) {
-            // ✅ Attach provider data to session
+            // ✅ Ensure session.user exists before assigning
             if (token) {
-                session.user.email = token.email as string;
-                session.user.name = token.name as string;
-                session.user.image = token.picture as string;
+                if (!session.user) {
+                    session.user = { name: "", email: "", image: "" };
+                }
+
+                session.user.email = (token.email as string) || "";
+                session.user.name = (token.name as string) || "";
+                session.user.image = (token.picture as string) || "";
                 (session as any).provider = token.provider;
             }
             return session;
