@@ -1,6 +1,13 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare module "next-auth" {
+    interface Profile {
+        picture?: string;
+    }
+}
+
 const handler = NextAuth({
     providers: [
         GoogleProvider({
