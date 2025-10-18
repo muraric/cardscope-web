@@ -1,22 +1,12 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-interface GoogleProfile {
-    email?: string;
-    name?: string;
-    picture?: string;
-    sub?: string;
+/** ✅ Extend NextAuth types to safely include profile.picture */
+declare module "next-auth" {
+    interface Profile {
+        picture?: string;
+    }
 }
-
-const googleProfile = profile as GoogleProfile;
-
-await api.post("/api/auth/google-login", {
-    email: user.email,
-    name: user.name,
-    image: user.image || googleProfile.picture || null,
-});
-
 
 const handler = NextAuth({
     providers: [
@@ -43,7 +33,7 @@ const handler = NextAuth({
                         email: user.email,
                         provider: "google",
                         providerId: account?.providerAccountId,
-                        image: user.image || profile?.picture || null,
+                        image: user.image || (profile as any)?.picture || null, // ✅ Safe cast fix
                     }),
                 });
 
@@ -61,7 +51,7 @@ const handler = NextAuth({
         },
 
         async redirect({ url, baseUrl }) {
-            // Always redirect to settings after login success
+            // ✅ Always redirect to home after successful login
             return `/`;
         },
 
@@ -82,7 +72,7 @@ const handler = NextAuth({
                 session.user.email = token.email as string;
                 session.user.name = token.name as string;
                 session.user.image = token.picture as string;
-                session.provider = token.provider;
+                (session as any).provider = token.provider;
             }
             return session;
         },
