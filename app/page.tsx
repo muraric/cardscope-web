@@ -1,17 +1,18 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import {useEffect, useState} from "react";
+import {useRouter} from "next/navigation";
+import {useSession} from "next-auth/react";
 import Layout from "../components/Layout";
 import SuggestionsList from "../components/SuggestionsList";
 import BestCardBanner from "../components/BestCardBanner";
 import LoadingSpinner from "../components/LoadingSpinner";
 import TipBanner from "../components/TipBanner";
 import api from "../lib/api";
-import { getAuth } from "../lib/auth";
-import { Capacitor } from "@capacitor/core";
-import { StatusBar, Style } from "@capacitor/status-bar";
+import {getAuth} from "../lib/auth";
+import {Capacitor} from "@capacitor/core";
+import {StatusBar, Style} from "@capacitor/status-bar";
 
 type Suggestion = {
     card_name: string;
@@ -26,9 +27,12 @@ type StoreInfo = {
 
 export default function Suggestions() {
     const router = useRouter();
+    const {data: session, status} = useSession();
+
     // Auth
     const [email, setEmail] = useState<string | null>(null);
     const [userName, setUserName] = useState<string>("there");
+    const [hasCards, setHasCards] = useState<boolean>(true); // default true until checked
 
     // UI
     const [storeInput, setStoreInput] = useState("");
@@ -46,61 +50,70 @@ export default function Suggestions() {
     const [loading, setLoading] = useState(false);
     const [errMsg, setErrMsg] = useState<string | null>(null);
 
-    // ✅ Prevent overlap under Android status bar
+    // Status bar (keep Capacitor intact)
     useEffect(() => {
-        if (Capacitor.getPlatform() === "android") {
-            (async () => {
-                try {
-                    await StatusBar.setOverlaysWebView({ overlay: false });
-                    await StatusBar.setStyle({ style: Style.Dark });
-                    await StatusBar.setBackgroundColor({ color: "#ffffff" });
-                } catch {
-                    /* ignore */
+        const run = async () => {
+            try {
+                if (!Capacitor.isNativePlatform()) return;
+                if (Capacitor.getPlatform() === "android") {
+                    await StatusBar.setOverlaysWebView({overlay: false});
+                    await StatusBar.setStyle({style: Style.Dark});
+                    await StatusBar.setBackgroundColor({color: "#ffffff"});
                 }
-            })();
-        }
+            } catch {
+                /* ignore */
+            }
+        };
+        run();
     }, []);
 
-    // 🧠 Load email and name
+    // Unified auth guard
     useEffect(() => {
-        const auth = getAuth();
-        if (!auth?.email) {
-            router.push("/login");
+        if (status === "loading") return;
+
+        const localAuth = getAuth();
+        const nextAuthEmail = session?.user?.email ?? null;
+        const localEmail = localAuth?.email ?? null;
+        const finalEmail = nextAuthEmail || localEmail;
+
+        if (!finalEmail) {
+            router.replace("/login");
             return;
         }
+        setEmail(finalEmail);
+    }, [status, session, router]);
 
-        setEmail(auth.email);
+    // Fetch profile (name + hasCards)
+    useEffect(() => {
+        if (!email) return;
 
-        const fetchUserName = async () => {
+        (async () => {
             try {
-                const emailParam = encodeURIComponent(auth.email ?? "");
+                const emailParam = encodeURIComponent(email);
                 const res = await api.get(`/api/user/${emailParam}`);
                 const fetchedName = res.data?.name;
+                const userCards = Array.isArray(res.data?.userCards) ? res.data.userCards : [];
+                setHasCards(userCards.length > 0);
+
                 if (fetchedName) {
                     const formatted = fetchedName
                         .split(" ")
-                        .map(
-                            (w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
-                        )
+                        .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
                         .join(" ");
                     setUserName(formatted);
                 }
             } catch (err) {
-                console.error("❌ Failed to load name:", err);
+                console.error("❌ Failed to load profile/name:", err);
             }
-        };
+        })();
+    }, [email]);
 
-        fetchUserName();
-    }, [router]);
-
-    // ---------- Helpers ----------
+    // Helpers
     const applyResponse = (data: any) => {
         const returnedStore = data?.store ?? null;
         const returnedCategory = data?.category ?? null;
         const returnedQuarter = data?.currentQuarter ?? null;
-        const list: Suggestion[] = Array.isArray(data?.suggestions)
-            ? data.suggestions
-            : [];
+        const list: Suggestion[] = Array.isArray(data?.suggestions) ? data.suggestions : [];
 
         setDetectedStore(returnedStore);
         setCategory(returnedCategory);
@@ -111,9 +124,18 @@ export default function Suggestions() {
         if (returnedStore) setStoreInput(returnedStore);
     };
 
-    // ---------- Actions ----------
-    const handleSubmit = async (storeName: string, category?: string) => {
+    // Actions
+    const ensureHasCards = () => {
+        if (!hasCards) {
+            setErrMsg("Please add cards in Settings before getting suggestions.");
+            return false;
+        }
+        return true;
+    };
+
+    const handleSubmit = async (storeName: string, cat?: string) => {
         if (!email) return;
+        if (!ensureHasCards()) return;
         if (!storeName.trim()) {
             setErrMsg("Please enter a store name.");
             return;
@@ -127,7 +149,7 @@ export default function Suggestions() {
             const res = await api.post("/api/get-card-suggestions", {
                 email,
                 store: storeName.trim(),
-                category: category || "general",
+                category: cat || "general",
             });
             applyResponse(res.data);
         } catch (err: any) {
@@ -144,6 +166,7 @@ export default function Suggestions() {
 
     const handleDetectStore = async () => {
         if (!email) return;
+        if (!ensureHasCards()) return;
 
         if (!navigator.geolocation) {
             setErrMsg("Geolocation is not supported by your browser.");
@@ -156,15 +179,12 @@ export default function Suggestions() {
         navigator.geolocation.getCurrentPosition(
             async (pos) => {
                 try {
-                    const { latitude, longitude } = pos.coords;
-                    console.log("📍 Geolocation:", { latitude, longitude });
-
+                    const {latitude, longitude} = pos.coords;
                     const res = await api.get("/api/google/detect-stores-v1", {
-                        params: { latitude, longitude },
+                        params: {latitude, longitude},
                     });
 
                     let stores: StoreInfo[] = [];
-
                     if (res.data?.stores?.places && Array.isArray(res.data.stores.places)) {
                         stores = res.data.stores.places.map((p: any) => ({
                             name: p.displayName?.text || "Unknown",
@@ -178,7 +198,6 @@ export default function Suggestions() {
                     }
 
                     if (stores.length === 0) {
-                        console.log("⚠️ No stores found, defaulting to Unknown Store");
                         await handleSubmit("Unknown Store", "general");
                     } else {
                         setStoreOptions(stores);
@@ -202,7 +221,20 @@ export default function Suggestions() {
         );
     };
 
-    if (!email) return null;
+    // Show nothing while verifying auth
+
+    if (status === "loading" || (!email && status !== "unauthenticated")) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 space-y-3">
+                <LoadingSpinner />
+                <p className="text-gray-500 text-sm">Signing you in...</p>
+            </div>
+        );
+    }
+
+
+    // If truly unauthenticated, the guard above will have redirected; render nothing.
+    if (!email && status === "unauthenticated") return null;
 
     const getCategoryColor = (cat: string | null) => {
         const normalized = cat ? cat.toLowerCase() : "";
@@ -226,7 +258,6 @@ export default function Suggestions() {
     const hour = new Date().getHours();
     let greeting = "Hello";
     let emoji = "💡";
-
     if (hour < 12) {
         greeting = "Good morning";
         emoji = "🌅";
@@ -238,11 +269,9 @@ export default function Suggestions() {
         emoji = "🌙";
     }
 
-    // ---------- UI ----------
     return (
         <Layout>
             <div className="max-w-lg mx-auto w-full px-4 space-y-6 pt-safe-plus">
-                {/* Greeting */}
                 <div className="space-y-1 mb-4">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
                         {emoji} {greeting}, {userName}!
@@ -254,7 +283,6 @@ export default function Suggestions() {
                     </p>
                 </div>
 
-                {/* ✅ Auto-detect button moved up */}
                 <button
                     onClick={handleDetectStore}
                     className="btn btn-primary w-full"
@@ -263,7 +291,6 @@ export default function Suggestions() {
                     📍 Detect My Store & Get Suggestions
                 </button>
 
-                {/* Manual input */}
                 <div className="flex flex-col sm:flex-row gap-2 mt-2">
                     <input
                         className="flex-1 border p-3 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
@@ -279,15 +306,26 @@ export default function Suggestions() {
                     </button>
                 </div>
 
-                <TipBanner text="Pro Tip: Add your cards in Settings to get more accurate recommendations." />
+                {/*<TipBanner text="Pro Tip: Add your cards in Settings to get more accurate recommendations."/>*/}
 
                 {errMsg && (
-                    <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-                        {errMsg}
+                    <div className="flex flex-col items-center p-5 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800 text-center shadow-sm space-y-2">
+                        <div className="text-3xl">💳</div>
+                        <div>
+                            <p className="font-semibold mb-1">No cards found</p>
+                            <p className="text-sm">{errMsg}</p>
+                        </div>
+                        <button
+                            onClick={() => router.push("/settings")}
+                            className="btn btn-primary w-full sm:w-auto"
+                        >
+                            Go to Settings
+                        </button>
                     </div>
                 )}
 
-                {loading && <LoadingSpinner />}
+
+                {loading && <LoadingSpinner/>}
 
                 {!loading && detectedStore && (
                     <div className="p-4 rounded-lg bg-gray-100 border text-sm text-gray-700 space-y-1">
@@ -297,32 +335,26 @@ export default function Suggestions() {
                         {category && (
                             <div>
                                 🏷️ Category:{" "}
-                                <span
-                                    className={`capitalize font-medium ${getCategoryColor(
-                                        category
-                                    )}`}
-                                >
+                                <span className={`capitalize font-medium ${getCategoryColor(category)}`}>
                   {category}
                 </span>
                             </div>
                         )}
                         {currentQuarter && (
                             <div>
-                                📅 Current Quarter:{" "}
-                                <span className="font-medium">{currentQuarter}</span>
+                                📅 Current Quarter: <span className="font-medium">{currentQuarter}</span>
                             </div>
                         )}
                     </div>
                 )}
 
-                {!loading && bestCard && <BestCardBanner card={bestCard} />}
+                {!loading && bestCard && <BestCardBanner card={bestCard}/>}
 
                 {!loading && suggestions.length > 0 && (
-                    <SuggestionsList suggestions={suggestions} />
+                    <SuggestionsList suggestions={suggestions}/>
                 )}
             </div>
 
-            {/* Modal for detected stores */}
             {showModal && storeOptions.length > 0 && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-6 space-y-4">
@@ -352,10 +384,7 @@ export default function Suggestions() {
                                 </li>
                             ))}
                         </ul>
-                        <button
-                            onClick={() => setShowModal(false)}
-                            className="btn btn-danger w-full mt-4"
-                        >
+                        <button onClick={() => setShowModal(false)} className="btn btn-danger w-full mt-4">
                             Cancel
                         </button>
                     </div>

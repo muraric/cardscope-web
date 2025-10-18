@@ -1,16 +1,29 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import {useState} from "react";
-import {useRouter} from "next/navigation";
-import {setAuth} from "../../lib/auth";
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
 import api from "../../lib/api";
+import { setAuth } from "../../lib/auth";
 
 export default function Login() {
     const router = useRouter();
+    const { data: session, status } = useSession();
+    const redirected = useRef(false); // ✅ prevents multiple redirects
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+
+    // ✅ Handle redirect after Google login once
+    useEffect(() => {
+        if (status === "authenticated" && !redirected.current) {
+            redirected.current = true;
+            console.log("✅ Google login success → redirecting to /");
+            router.replace("/");
+        }
+    }, [status, router]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,24 +35,35 @@ export default function Login() {
         }
 
         try {
-            // Call backend login API
-            await api.post("/api/auth/login", {email, password});
-
-            // Save auth locally
-            setAuth({email});
-
-            // Redirect to Settings
-            router.push("/settings");
+            await api.post("/api/auth/login", { email, password });
+            setAuth({ email });
+            router.replace("/");
         } catch (err) {
             console.error("❌ Login failed:", err);
             setError("Invalid email or password. Please try again.");
         }
     };
 
+    if (status === "loading") {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-gray-500">
+                Checking your session...
+            </div>
+        );
+    }
+
+    if (status === "authenticated") {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-gray-500">
+                Redirecting to your dashboard...
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
             <div className="max-w-md w-full bg-white shadow-md rounded-lg p-6 sm:p-8 space-y-6">
-                <h1 className="text-center">🔑 Login</h1>
+                <h1 className="text-center text-xl font-bold">🔑 Login</h1>
 
                 {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
@@ -84,7 +108,24 @@ export default function Login() {
                     </button>
                 </form>
 
-                {/* 👇 New user signup info */}
+                <div className="flex items-center my-4">
+                    <div className="flex-grow border-t border-gray-200" />
+                    <span className="mx-2 text-gray-400 text-sm">or</span>
+                    <div className="flex-grow border-t border-gray-200" />
+                </div>
+
+                <button
+                    onClick={() => signIn("google", { callbackUrl: "/" })}
+                    className="flex items-center justify-center w-full border border-gray-300 rounded-lg py-2 hover:bg-gray-50 transition"
+                >
+                    <img
+                        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                        alt="Google"
+                        className="h-5 w-5 mr-2"
+                    />
+                    Continue with Google
+                </button>
+
                 <div className="text-center mt-4">
                     <p className="text-sm">
                         New user?{" "}
@@ -100,4 +141,3 @@ export default function Login() {
         </div>
     );
 }
-``
