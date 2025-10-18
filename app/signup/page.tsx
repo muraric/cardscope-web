@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react"; // 👈 added for Google signup
 import api from "../../lib/api";
 import { setAuth } from "../../lib/auth";
 
@@ -91,6 +92,27 @@ export default function Signup() {
                     </button>
                 </form>
 
+                {/* Divider */}
+                <div className="flex items-center my-4">
+                    <div className="flex-grow border-t border-gray-200" />
+                    <span className="mx-2 text-gray-400 text-sm">or</span>
+                    <div className="flex-grow border-t border-gray-200" />
+                </div>
+
+                {/* Google Sign Up button */}
+                <button
+                    onClick={() => signIn("google", { callbackUrl: "/settings" })}
+                    className="flex items-center justify-center w-full border border-gray-300 rounded-lg py-2 hover:bg-gray-50 transition"
+                >
+                    <img
+                        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                        alt="Google"
+                        className="h-5 w-5 mr-2"
+                    />
+                    Continue with Google
+                </button>
+
+                {/* Existing login link */}
                 <div className="text-center text-sm text-gray-600">
                     Already have an account?{" "}
                     <button

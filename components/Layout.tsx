@@ -6,6 +6,7 @@ import { clearAuth } from "../lib/auth";
 import { useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
+import { signOut } from "next-auth/react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -14,19 +15,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const applyStatusBar = async () => {
             try {
-                const platform = Capacitor.getPlatform();
+                // Only run on native; web will warn
+                if (!Capacitor.isNativePlatform()) return;
 
+                const platform = Capacitor.getPlatform();
                 await StatusBar.show();
 
                 if (platform === "ios") {
-                    // ✅ Ensure iOS status text is visible
                     await StatusBar.setOverlaysWebView({ overlay: false });
-                    await StatusBar.setStyle({ style: Style.Dark }); // dark icons (black)
-                    await StatusBar.setBackgroundColor({ color: "#f2f2f2" }); // light gray background for contrast
+                    await StatusBar.setStyle({ style: Style.Dark });
+                    await StatusBar.setBackgroundColor({ color: "#f2f2f2" });
                 } else if (platform === "android") {
-                    // ✅ Keep Android as is (already working)
                     await StatusBar.setOverlaysWebView({ overlay: true });
-                    await StatusBar.setStyle({ style: Style.Light }); // white text
+                    await StatusBar.setStyle({ style: Style.Light });
                     await StatusBar.setBackgroundColor({ color: "#000000" });
                 }
             } catch (err) {
@@ -37,9 +38,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         applyStatusBar();
     }, []);
 
-    const handleSignOut = () => {
-        clearAuth();
-        router.push("/login");
+    const handleSignOut = async () => {
+        try {
+            clearAuth();               // local
+            await signOut({ redirect: false }); // NextAuth
+            router.replace("/login");
+        } catch (err) {
+            console.error("❌ Sign-out error:", err);
+        }
     };
 
     const getTitle = () => (pathname === "/settings" ? "Settings" : "Suggestions");
@@ -91,7 +97,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             {/* Footer */}
             <footer className="bg-white text-center text-xs text-gray-500 border-t py-3 rounded-b-2xl">
-                © {new Date().getFullYear()} Credit Card Advisor
+                © {new Date().getFullYear()} CardScope
             </footer>
         </div>
     );

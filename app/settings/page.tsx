@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import api from "../../lib/api";
 import { getAuth } from "../../lib/auth";
 import Layout from "../../components/Layout";
@@ -14,13 +15,11 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 interface RewardDetails {
     cardReward?: Record<string, any>;
 }
-
 interface UserCard {
     issuer: string;
     cardProduct: string;
     rewardDetails: RewardDetails;
 }
-
 interface Profile {
     id?: number;
     name: string;
@@ -31,6 +30,8 @@ interface Profile {
 
 export default function Settings() {
     const router = useRouter();
+    const { data: session, status } = useSession();
+
     const [email, setEmail] = useState<string | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [issuer, setIssuer] = useState("");
@@ -40,36 +41,56 @@ export default function Settings() {
     const [loading, setLoading] = useState(false);
     const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
-    // ✅ Android StatusBar fix
+    // Keep Capacitor status bar intact
     useEffect(() => {
-        if (Capacitor.getPlatform() === "android") {
-            (async () => {
-                try {
+        const run = async () => {
+            try {
+                if (!Capacitor.isNativePlatform()) return;
+                if (Capacitor.getPlatform() === "android") {
                     await StatusBar.setOverlaysWebView({ overlay: false });
                     await StatusBar.setStyle({ style: Style.Dark });
                     await StatusBar.setBackgroundColor({ color: "#ffffff" });
-                } catch {
-                    /* ignore */
                 }
-            })();
-        }
+            } catch {
+                /* ignore */
+            }
+        };
+        run();
     }, []);
 
+    // Unified auth: allow NextAuth OR local auth
     useEffect(() => {
-        const { email: storedEmail } = getAuth();
-        if (!storedEmail) {
-            router.push("/login");
-        } else {
-            setEmail(storedEmail);
-            fetchProfile(storedEmail);
-        }
-    }, [router]);
+        if (status === "loading") return;
 
-    const fetchProfile = async (email: string) => {
+        const local = getAuth();
+        const nextAuthEmail = session?.user?.email ?? null;
+        const localEmail = local?.email ?? null;
+        const finalEmail = nextAuthEmail || localEmail;
+
+        if (!finalEmail) {
+            router.replace("/login");
+            return;
+        }
+
+        setEmail(finalEmail);
+    }, [status, session, router]);
+
+    useEffect(() => {
+        if (!email) return;
+        fetchProfile(email);
+    }, [email]);
+
+    const fetchProfile = async (emailStr: string) => {
         setLoading(true);
         try {
-            const res = await api.get(`/api/user/${encodeURIComponent(email)}`);
-            setProfile(res.data);
+            const res = await api.get(`/api/user/${encodeURIComponent(emailStr)}`);
+            setProfile(
+                res.data ?? {
+                    name: "",
+                    email: emailStr,
+                    userCards: [],
+                }
+            );
         } catch (err) {
             console.error("❌ Failed to load profile:", err);
         } finally {
@@ -80,22 +101,20 @@ export default function Settings() {
     const fetchIssuerSuggestions = async (query: string) => {
         if (!query.trim()) return setIssuerSuggestions([]);
         try {
-            const res = await api.get(
-                `/api/cards/issuers?search=${encodeURIComponent(query)}`
-            );
+            const res = await api.get(`/api/cards/issuers?search=${encodeURIComponent(query)}`);
             setIssuerSuggestions(res.data || []);
         } catch (err) {
             console.error("❌ Failed to fetch issuers:", err);
         }
     };
 
-    const fetchProductSuggestions = async (issuer: string, query: string) => {
-        if (!issuer || !query.trim()) return setProductSuggestions([]);
+    const fetchProductSuggestions = async (issuerName: string, query: string) => {
+        if (!issuerName || !query.trim()) return setProductSuggestions([]);
         try {
             const res = await api.get(
-                `/api/cards/products?issuer=${encodeURIComponent(
-                    issuer
-                )}&search=${encodeURIComponent(query)}`
+                `/api/cards/products?issuer=${encodeURIComponent(issuerName)}&search=${encodeURIComponent(
+                    query
+                )}`
             );
             setProductSuggestions(res.data || []);
         } catch (err) {
@@ -154,7 +173,15 @@ export default function Settings() {
         setExpandedCard(expandedCard === key ? null : key);
     };
 
-    if (!email) return null;
+    if (status === "loading" || (!email && status !== "unauthenticated")) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-gray-500">
+                Checking your session...
+            </div>
+        );
+    }
+
+    if (!email && status === "unauthenticated") return null;
 
     return (
         <Layout>
@@ -170,9 +197,7 @@ export default function Settings() {
                                 className="w-full border p-2 sm:p-3 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
                                 placeholder="Full Name"
                                 value={profile.name}
-                                onChange={(e) =>
-                                    setProfile({ ...profile, name: e.target.value })
-                                }
+                                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
                             />
                             <input
                                 className="w-full border p-2 sm:p-3 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
@@ -180,10 +205,7 @@ export default function Settings() {
                                 value={profile.email}
                                 disabled
                             />
-                            <button
-                                onClick={saveProfile}
-                                className="btn btn-success w-full"
-                            >
+                            <button onClick={saveProfile} className="btn btn-success w-full">
                                 Save Profile
                             </button>
                         </div>
@@ -254,10 +276,7 @@ export default function Settings() {
                                     )}
                                 </div>
 
-                                <button
-                                    onClick={addCard}
-                                    className="btn btn-primary w-full sm:w-auto"
-                                >
+                                <button onClick={addCard} className="btn btn-primary w-full sm:w-auto">
                                     Add
                                 </button>
                             </div>
@@ -296,7 +315,6 @@ export default function Settings() {
                                                     </button>
                                                 </div>
 
-                                                {/* Reward details expanded */}
                                                 {expandedCard === cardKey && reward && (
                                                     <motion.div
                                                         initial={{ opacity: 0, height: 0 }}
@@ -341,26 +359,25 @@ export default function Settings() {
                                                 {reward.rotating_categories && (
                                                     <div>
                                                         <strong>Rotating Categories:</strong>
-                                                        {Object.entries(reward.rotating_categories as Record<string, any[]>).map(
-                                                            ([quarter, cats]: [string, any[]]) =>
-                                                                cats.length > 0 && (
-                                                                    <div key={quarter} className="mt-1">
-                                                                        <p className="font-semibold">{quarter}</p>
-                                                                        <ul className="list-disc pl-5">
-                                                                            {cats.map((c, i) => (
-                                                                                <li key={i}>
-                                                                                    {c.category} — {c.rate}
-                                                                                    {c.notes && ` (${c.notes})`}
-                                                                                    {c.exclusions?.length > 0 && (
-                                                                                        <span>
-                                                  {" "} | Exclusions: {c.exclusions.join(", ")}
-                                                </span>
-                                                                                    )}
-                                                                                </li>
-                                                                            ))}
-                                                                        </ul>
-                                                                    </div>
-                                                                )
+                                                        {Object.entries(
+                                                            reward.rotating_categories as Record<string, any[]>
+                                                        ).map(([quarter, cats]: [string, any[]]) =>
+                                                            cats.length > 0 ? (
+                                                                <div key={quarter} className="mt-1">
+                                                                    <p className="font-semibold">{quarter}</p>
+                                                                    <ul className="list-disc pl-5">
+                                                                        {cats.map((c, i) => (
+                                                                            <li key={i}>
+                                                                                {c.category} — {c.rate}
+                                                                                {c.notes && ` (${c.notes})`}
+                                                                                {c.exclusions?.length > 0 && (
+                                                                                    <span> | Exclusions: {c.exclusions.join(", ")}</span>
+                                                                                )}
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            ) : null
                                                         )}
                                                     </div>
                                                 )}
@@ -385,10 +402,7 @@ export default function Settings() {
                                 </AnimatePresence>
                             </ul>
 
-                            <button
-                                onClick={saveProfile}
-                                className="btn btn-success w-full mt-4"
-                            >
+                            <button onClick={saveProfile} className="btn btn-success w-full mt-4">
                                 Save Cards
                             </button>
                         </div>
