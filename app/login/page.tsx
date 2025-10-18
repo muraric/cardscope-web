@@ -1,9 +1,9 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { setAuth } from "../../lib/auth";
+import {useState} from "react";
+import {useRouter} from "next/navigation";
+import {setAuth} from "../../lib/auth";
 import api from "../../lib/api";
 
 export default function Login() {
@@ -23,10 +23,10 @@ export default function Login() {
 
         try {
             // Call backend login API
-            await api.post("/api/auth/login", { email, password });
+            await api.post("/api/auth/login", {email, password});
 
             // Save auth locally
-            setAuth({ email });
+            setAuth({email});
 
             // Redirect to Settings
             router.push("/settings");
@@ -68,6 +68,15 @@ export default function Login() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
+                        <div className="text-right mt-1">
+                            <button
+                                type="button"
+                                onClick={() => router.push("/reset")}
+                                className="text-sm text-blue-600 hover:underline"
+                            >
+                                Forgot password?
+                            </button>
+                        </div>
                     </div>
 
                     <button type="submit" className="btn btn-primary w-full">
