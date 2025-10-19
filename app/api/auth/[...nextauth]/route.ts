@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
-/** ✅ Extend NextAuth types to safely include profile.picture */
+/** ✅ Extend NextAuth types to safely include optional picture field */
 declare module "next-auth" {
     interface Profile {
         picture?: string;
@@ -11,34 +11,46 @@ declare module "next-auth" {
 const handler = NextAuth({
     providers: [
         GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientId:
+                process.env.GOOGLE_CLIENT_ID ||
+                process.env.GOOGLE_CLIENT_ID_ANDROID!, // ✅ support both web + Android clients
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            authorization: {
+                params: {
+                    prompt: "select_account",
+                    access_type: "offline",
+                    response_type: "code",
+                },
+            },
         }),
     ],
 
     session: {
-        strategy: "jwt", // ✅ Use JWT-based sessions for stateless auth
+        strategy: "jwt", // ✅ stateless sessions for Next.js
     },
 
     callbacks: {
+        /** ✅ When user signs in via Google */
         async signIn({ user, account, profile }) {
             try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
 
+                const payload = {
+                    name: user.name,
+                    email: user.email,
+                    provider: "google",
+                    providerId: account?.providerAccountId,
+                    image: user.image || (profile as any)?.picture || null,
+                };
+
                 const res = await fetch(`${apiUrl}/api/user`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        name: user.name,
-                        email: user.email,
-                        provider: "google",
-                        providerId: account?.providerAccountId,
-                        image: user.image || (profile as any)?.picture || null, // ✅ Safe cast fix
-                    }),
+                    body: JSON.stringify(payload),
                 });
 
                 if (res.ok) {
-                    console.log("✅ Google user accepted by backend");
+                    console.log("✅ Google user accepted by backend:", user.email);
                     return true;
                 }
 
@@ -50,13 +62,13 @@ const handler = NextAuth({
             }
         },
 
+        /** ✅ After successful sign-in, redirect to home */
         async redirect() {
-            // ✅ Always redirect to home after successful login
-            return `/`;
+            return "/";
         },
 
+        /** ✅ Attach token data to JWT */
         async jwt({ token, account, user }) {
-            // ✅ Attach Google info to JWT
             if (account && user) {
                 token.provider = account.provider;
                 token.email = user.email;
@@ -66,13 +78,10 @@ const handler = NextAuth({
             return token;
         },
 
+        /** ✅ Map JWT values to session safely */
         async session({ session, token }) {
-            // ✅ Ensure session.user exists before assigning
             if (token) {
-                if (!session.user) {
-                    session.user = { name: "", email: "", image: "" };
-                }
-
+                session.user = session.user || { name: "", email: "", image: "" };
                 session.user.email = (token.email as string) || "";
                 session.user.name = (token.name as string) || "";
                 session.user.image = (token.picture as string) || "";
@@ -82,9 +91,10 @@ const handler = NextAuth({
         },
     },
 
+    /** ✅ Custom pages (consistent UX) */
     pages: {
-        signIn: "/login", // ✅ Custom login page
-        error: "/login",  // Redirect error back to login page
+        signIn: "/login",
+        error: "/login",
     },
 });
 
