@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools">
 
-
     <!-- 🌐 Required permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -23,8 +22,7 @@
             android:usesCleartextTraffic="true"
             tools:replace="android:usesCleartextTraffic">
 
-
-    <!-- ✅ Main Activity -->
+        <!-- ✅ Main Activity -->
         <activity
                 android:name=".MainActivity"
                 android:exported="true"
@@ -38,6 +36,18 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- ✅ Deep link intent for Google OAuth callback -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                        android:scheme="cardscope"
+                        android:host="api"
+                        android:pathPrefix="/auth/callback/google" />
+            </intent-filter>
+
         </activity>
 
         <!-- ✅ FileProvider (for file sharing / saving) -->
@@ -52,5 +62,4 @@
         </provider>
 
     </application>
-
 </manifest>

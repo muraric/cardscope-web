@@ -3,12 +3,16 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
     appId: 'com.shomuran.cardscope',
     appName: 'CardScope',
-    webDir: 'out', // keep for local fallback
+    webDir: 'out',
+
     server: {
-        // 👇 Load your live Vercel app
-        //url: 'http://192.168.1.67:3000', // Replace with your actual URL
-       url: 'https://credit-card-advisor-web.vercel.app', // Replace with your actual URL
+        // 👇 Your dev / production server
+        //url: 'http://192.168.1.67:3000', // or your deployed Vercel URL
+        url: 'https://cardscope-web.vercel.app',
         cleartext: true,
+
+        // 👇 Add custom Android scheme for deep link redirect
+        androidScheme: 'cardscope',
     },
 };
 

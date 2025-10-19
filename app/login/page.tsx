@@ -6,21 +6,22 @@ import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import api from "../../lib/api";
 import { setAuth } from "../../lib/auth";
+import { Capacitor } from "@capacitor/core";
 
 export default function Login() {
     const router = useRouter();
     const { data: session, status } = useSession();
-    const redirected = useRef(false); // ✅ prevents multiple redirects
+    const redirected = useRef(false);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
-    // ✅ Handle redirect after Google login once
+    // ✅ Redirect once after successful login
     useEffect(() => {
         if (status === "authenticated" && !redirected.current) {
             redirected.current = true;
-            console.log("✅ Google login success → redirecting to /");
+            console.log("✅ Login success → redirecting to /");
             router.replace("/");
         }
     }, [status, router]);
@@ -44,10 +45,35 @@ export default function Login() {
         }
     };
 
+    // ✅ Custom Google sign-in handler
+    const handleGoogleSignIn = async () => {
+        try {
+            if (Capacitor.isNativePlatform()) {
+                // Running inside Android/iOS app — use deep link redirect
+                console.log("📱 Using native Google redirect");
+                await signIn("google", {
+                    callbackUrl: "cardscope://api/auth/callback/google",
+                });
+            } else {
+                // Running in browser — use normal web redirect
+                console.log("💻 Using web Google redirect");
+                await signIn("google", { callbackUrl: "/" });
+            }
+        } catch (err) {
+            console.error("❌ Google sign-in failed:", err);
+            setError("Google sign-in failed. Please try again.");
+        }
+    };
+
     if (status === "loading") {
         return (
-            <div className="min-h-screen flex items-center justify-center text-gray-500">
-                Checking your session...
+            <div className="min-h-screen flex flex-col items-center justify-center space-y-3 text-gray-500">
+                <img
+                    src="/spinner.svg"
+                    alt="Loading"
+                    className="w-8 h-8 animate-spin"
+                />
+                <p>Checking your session...</p>
             </div>
         );
     }
@@ -114,8 +140,9 @@ export default function Login() {
                     <div className="flex-grow border-t border-gray-200" />
                 </div>
 
+                {/* ✅ Google Sign-In (adaptive for web/app) */}
                 <button
-                    onClick={() => signIn("google", { callbackUrl: "/" })}
+                    onClick={handleGoogleSignIn}
                     className="flex items-center justify-center w-full border border-gray-300 rounded-lg py-2 hover:bg-gray-50 transition"
                 >
                     <img
