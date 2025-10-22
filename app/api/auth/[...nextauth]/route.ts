@@ -25,6 +25,9 @@ const handler = NextAuth({
         }),
     ],
 
+    // ✅ Enable debug logging for troubleshooting
+    debug: process.env.NODE_ENV === "development",
+
     session: {
         strategy: "jwt", // ✅ stateless sessions for Next.js
     },
@@ -62,9 +65,17 @@ const handler = NextAuth({
             }
         },
 
-        /** ✅ After successful sign-in, redirect to home */
-        async redirect() {
-            return "/";
+        /** ✅ After successful sign-in, redirect based on platform */
+        async redirect({ url, baseUrl }) {
+            // Check if the URL contains the mobile deep link scheme
+            if (url.includes("cardscope://")) {
+                return url; // Return the deep link URL for mobile apps
+            }
+            
+            // For web, redirect to home page
+            if (url.startsWith("/")) return `${baseUrl}${url}`;
+            else if (new URL(url).origin === baseUrl) return url;
+            return baseUrl;
         },
 
         /** ✅ Attach token data to JWT */
