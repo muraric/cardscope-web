@@ -137,7 +137,7 @@ export default function Suggestions() {
         if (!email) return;
         if (!ensureHasCards()) return;
         if (!storeName.trim()) {
-            setErrMsg("Please enter a store name.");
+            setErrMsg("Please Enter store name");
             return;
         }
 
@@ -312,7 +312,9 @@ export default function Suggestions() {
                     <div className="flex flex-col items-center p-5 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800 text-center shadow-sm space-y-2">
                         <div className="text-3xl">💳</div>
                         <div>
-                            <p className="font-semibold mb-1">No cards found</p>
+                            <p className="font-semibold mb-1">
+                                {errMsg.includes("Please Enter store name") ? "Store name required" : "No cards found"}
+                            </p>
                             <p className="text-sm">{errMsg}</p>
                         </div>
                         <button
