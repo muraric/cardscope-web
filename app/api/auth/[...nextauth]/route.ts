@@ -28,18 +28,8 @@ const handler = NextAuth({
     // ✅ Enable debug logging for troubleshooting
     debug: process.env.NODE_ENV === "development",
 
-    // ✅ Simplified cookie configuration for mobile compatibility
-    cookies: {
-        sessionToken: {
-            name: `next-auth.session-token`,
-            options: {
-                httpOnly: true,
-                sameSite: 'lax',
-                path: '/',
-                secure: process.env.NODE_ENV === 'production'
-            }
-        }
-    },
+    // ✅ Remove cookie configuration to use default behavior
+    // This should resolve the "State cookie was missing" error
 
     session: {
         strategy: "jwt", // ✅ stateless sessions for Next.js
@@ -53,6 +43,22 @@ const handler = NextAuth({
     },
 
     callbacks: {
+        /** ✅ Custom OAuth callback to handle state issues */
+        async redirect({ url, baseUrl }) {
+            console.log("🔍 Redirect callback - URL:", url, "BaseURL:", baseUrl);
+            
+            // Handle OAuth callback URLs
+            if (url.includes("/api/auth/callback/google")) {
+                console.log("🔄 OAuth callback detected");
+                return `${baseUrl}/`;
+            }
+            
+            // Handle other redirects
+            if (url.startsWith("/")) return `${baseUrl}${url}`;
+            else if (new URL(url).origin === baseUrl) return url;
+            return baseUrl;
+        },
+
         /** ✅ When user signs in via Google */
         async signIn({ user, account, profile }) {
             try {
@@ -85,28 +91,6 @@ const handler = NextAuth({
             }
         },
 
-        /** ✅ After successful sign-in, redirect based on platform */
-        async redirect({ url, baseUrl }) {
-            console.log("🔍 Redirect callback - URL:", url, "BaseURL:", baseUrl);
-            
-            // Check if the URL contains the mobile deep link scheme
-            if (url.includes("cardscope://")) {
-                console.log("📱 Mobile deep link detected:", url);
-                return url; // Return the deep link URL for mobile apps
-            }
-            
-            // Check if this is a mobile app request by looking at the referer or user agent
-            // For now, we'll use a different approach - redirect to a mobile detection page
-            if (url.includes("/api/auth/callback/google")) {
-                console.log("🔄 OAuth callback detected, redirecting to mobile detection");
-                return `${baseUrl}/mobile-auth-success`;
-            }
-            
-            // For web, redirect to home page
-            if (url.startsWith("/")) return `${baseUrl}${url}`;
-            else if (new URL(url).origin === baseUrl) return url;
-            return baseUrl;
-        },
 
         /** ✅ Attach token data to JWT */
         async jwt({ token, account, user }) {
