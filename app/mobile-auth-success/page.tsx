@@ -23,9 +23,21 @@ export default function MobileAuthSuccess() {
                     // In mobile app, redirect to home
                     router.replace("/");
                 } else {
-                    console.log("💻 In web browser, redirecting to web home");
-                    // In web browser, redirect to home
-                    router.replace("/");
+                    console.log("💻 In web browser, attempting deep link to app");
+                    // Try to redirect to the native app using deep link
+                    try {
+                        // First try the custom scheme
+                        window.location.href = "cardscope://api/auth/callback/google";
+                        
+                        // If that doesn't work, try after a delay
+                        setTimeout(() => {
+                            console.log("📱 Deep link failed, staying in web");
+                            router.replace("/");
+                        }, 2000);
+                    } catch (error) {
+                        console.log("📱 Deep link error:", error);
+                        router.replace("/");
+                    }
                 }
             } else {
                 console.log("❌ No session found, redirecting to login");

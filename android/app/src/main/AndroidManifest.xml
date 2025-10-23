@@ -59,6 +59,16 @@
                         android:pathPrefix="/mobile-auth-success" />
             </intent-filter>
 
+            <!-- ✅ Additional App Links for root domain -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                        android:scheme="https"
+                        android:host="cardscope-web.vercel.app" />
+            </intent-filter>
+
         </activity>
 
         <!-- ✅ FileProvider (for file sharing / saving) -->
