@@ -45,17 +45,38 @@ export default function Login() {
         }
     };
 
-    // ✅ Simplified Google sign-in handler
+    // ✅ Custom Google sign-in handler for mobile
     const handleGoogleSignIn = async () => {
         try {
             console.log("🔍 Starting Google sign-in...");
             console.log("📱 Is native platform:", Capacitor.isNativePlatform());
             
-            // Use a simple redirect approach
-            await signIn("google", {
-                callbackUrl: "/",
-                redirect: true
-            });
+            if (Capacitor.isNativePlatform()) {
+                // Use Capacitor Browser for in-app OAuth
+                const { Browser } = await import('@capacitor/browser');
+                
+                const oauthUrl = `${window.location.origin}/api/auth/signin/google`;
+                console.log("📱 Opening OAuth in app browser:", oauthUrl);
+                
+                await Browser.open({ 
+                    url: oauthUrl,
+                    windowName: '_self'
+                });
+                
+                // Listen for the browser to close
+                Browser.addListener('browserFinished', () => {
+                    console.log("📱 Browser closed, checking auth status");
+                    // Refresh the page to check auth status
+                    window.location.reload();
+                });
+                
+            } else {
+                // Use standard web OAuth
+                await signIn("google", {
+                    callbackUrl: "/",
+                    redirect: true
+                });
+            }
         } catch (err) {
             console.error("❌ Google sign-in failed:", err);
             setError("Google sign-in failed. Please try again.");
