@@ -49,10 +49,10 @@ export default function Login() {
     const handleGoogleSignIn = async () => {
         try {
             if (Capacitor.isNativePlatform()) {
-                // Running inside Android/iOS app — use deep link redirect
-                console.log("📱 Using native Google redirect");
+                // Running inside Android/iOS app — use web redirect that will be handled by mobile detection
+                console.log("📱 Using mobile Google redirect");
                 await signIn("google", {
-                    callbackUrl: "cardscope://api/auth/callback/google",
+                    callbackUrl: "/mobile-auth-success",
                 });
             } else {
                 // Running in browser — use normal web redirect
