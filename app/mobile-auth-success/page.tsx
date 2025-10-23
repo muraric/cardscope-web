@@ -19,23 +19,9 @@ export default function MobileAuthSuccess() {
                 
                 // Check if we're in a mobile app
                 if (Capacitor.isNativePlatform()) {
-                    console.log("📱 In mobile app, closing browser and redirecting to app home");
-                    
-                    // Try to close the browser if it's open
-                    try {
-                        // Only import Browser plugin in native environments
-                        if (typeof window !== 'undefined' && window.Capacitor?.isNativePlatform()) {
-                            const { Browser } = await import('@capacitor/browser');
-                            await Browser.close();
-                        }
-                    } catch (err) {
-                        console.log("Browser plugin not available or already closed");
-                    }
-                    
-                    // Small delay to ensure browser closes
-                    setTimeout(() => {
-                        router.replace("/");
-                    }, 500);
+                    console.log("📱 In mobile app, redirecting to app home");
+                    // In mobile app, redirect to home
+                    router.replace("/");
                 } else {
                     console.log("💻 In web browser, redirecting to web home");
                     // In web browser, redirect to home
