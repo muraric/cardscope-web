@@ -28,8 +28,49 @@ const handler = NextAuth({
     // ✅ Enable debug logging for troubleshooting
     debug: process.env.NODE_ENV === "development",
 
+    // ✅ Fix cookie and session issues for mobile
+    cookies: {
+        sessionToken: {
+            name: `next-auth.session-token`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+                domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+            }
+        },
+        callbackUrl: {
+            name: `next-auth.callback-url`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+                domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+            }
+        },
+        csrfToken: {
+            name: `next-auth.csrf-token`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+                domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+            }
+        }
+    },
+
     session: {
         strategy: "jwt", // ✅ stateless sessions for Next.js
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+        updateAge: 24 * 60 * 60, // 24 hours
+    },
+
+    // ✅ Add JWT configuration for mobile compatibility
+    jwt: {
+        maxAge: 30 * 24 * 60 * 60, // 30 days
     },
 
     callbacks: {
