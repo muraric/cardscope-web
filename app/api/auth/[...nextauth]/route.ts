@@ -28,42 +28,44 @@ const handler = NextAuth({
     // ✅ Enable debug logging for troubleshooting
     debug: process.env.NODE_ENV === "development",
 
+    // ✅ Add secret for proper session handling
+    secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
+
     // ✅ Configure cookies for mobile compatibility
     cookies: {
         sessionToken: {
             name: `next-auth.session-token`,
             options: {
                 httpOnly: true,
-                sameSite: 'lax',
+                sameSite: 'none',
                 path: '/',
-                secure: process.env.NODE_ENV === 'production',
-                domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+                secure: true,
             },
         },
         callbackUrl: {
             name: `next-auth.callback-url`,
             options: {
-                sameSite: 'lax',
+                sameSite: 'none',
                 path: '/',
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
             },
         },
         csrfToken: {
             name: `next-auth.csrf-token`,
             options: {
                 httpOnly: true,
-                sameSite: 'lax',
+                sameSite: 'none',
                 path: '/',
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
             },
         },
         pkceCodeVerifier: {
             name: `next-auth.pkce.code_verifier`,
             options: {
                 httpOnly: true,
-                sameSite: 'lax',
+                sameSite: 'none',
                 path: '/',
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 maxAge: 60 * 15, // 15 minutes
             },
         },
@@ -71,9 +73,9 @@ const handler = NextAuth({
             name: `next-auth.state`,
             options: {
                 httpOnly: true,
-                sameSite: 'lax',
+                sameSite: 'none',
                 path: '/',
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 maxAge: 60 * 15, // 15 minutes
             },
         },
