@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.shomuran.cardscope",
+      "sha256_cert_fingerprints": ["26:D8:7E:38:5E:1D:CE:EB:20:81:3A:42:4B:86:97:B8:BA:31:B8:A7:C7:DF:22:F2:1A:9D:5A:CF:5D:EB:65:8D"]
+    }
+  }
+]

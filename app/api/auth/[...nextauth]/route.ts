@@ -67,9 +67,19 @@ const handler = NextAuth({
 
         /** ✅ After successful sign-in, redirect based on platform */
         async redirect({ url, baseUrl }) {
+            console.log("🔍 Redirect callback - URL:", url, "BaseURL:", baseUrl);
+            
             // Check if the URL contains the mobile deep link scheme
             if (url.includes("cardscope://")) {
+                console.log("📱 Mobile deep link detected:", url);
                 return url; // Return the deep link URL for mobile apps
+            }
+            
+            // Check if this is a mobile app request by looking at the referer or user agent
+            // For now, we'll use a different approach - redirect to a mobile detection page
+            if (url.includes("/api/auth/callback/google")) {
+                console.log("🔄 OAuth callback detected, redirecting to mobile detection");
+                return `${baseUrl}/mobile-auth-success`;
             }
             
             // For web, redirect to home page
