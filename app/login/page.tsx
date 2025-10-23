@@ -53,22 +53,31 @@ export default function Login() {
             
             if (Capacitor.isNativePlatform()) {
                 // Use Capacitor Browser for in-app OAuth
-                const { Browser } = await import('@capacitor/browser');
-                
-                const oauthUrl = `${window.location.origin}/api/auth/signin/google`;
-                console.log("📱 Opening OAuth in app browser:", oauthUrl);
-                
-                await Browser.open({ 
-                    url: oauthUrl,
-                    windowName: '_self'
-                });
-                
-                // Listen for the browser to close
-                Browser.addListener('browserFinished', () => {
-                    console.log("📱 Browser closed, checking auth status");
-                    // Refresh the page to check auth status
-                    window.location.reload();
-                });
+                try {
+                    const { Browser } = await import('@capacitor/browser');
+                    
+                    const oauthUrl = `${window.location.origin}/api/auth/signin/google`;
+                    console.log("📱 Opening OAuth in app browser:", oauthUrl);
+                    
+                    await Browser.open({ 
+                        url: oauthUrl,
+                        windowName: '_self'
+                    });
+                    
+                    // Listen for the browser to close
+                    Browser.addListener('browserFinished', () => {
+                        console.log("📱 Browser closed, checking auth status");
+                        // Refresh the page to check auth status
+                        window.location.reload();
+                    });
+                } catch (browserError) {
+                    console.log("📱 Browser plugin not available, falling back to standard OAuth");
+                    // Fallback to standard OAuth if browser plugin fails
+                    await signIn("google", {
+                        callbackUrl: "/",
+                        redirect: true
+                    });
+                }
                 
             } else {
                 // Use standard web OAuth
