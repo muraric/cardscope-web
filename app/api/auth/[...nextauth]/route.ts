@@ -28,7 +28,7 @@ const handler = NextAuth({
     // ✅ Enable debug logging for troubleshooting
     debug: process.env.NODE_ENV === "development",
 
-    // ✅ Fix cookie and session issues for mobile
+    // ✅ Simplified cookie configuration for mobile compatibility
     cookies: {
         sessionToken: {
             name: `next-auth.session-token`,
@@ -36,28 +36,7 @@ const handler = NextAuth({
                 httpOnly: true,
                 sameSite: 'lax',
                 path: '/',
-                secure: process.env.NODE_ENV === 'production',
-                domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
-            }
-        },
-        callbackUrl: {
-            name: `next-auth.callback-url`,
-            options: {
-                httpOnly: true,
-                sameSite: 'lax',
-                path: '/',
-                secure: process.env.NODE_ENV === 'production',
-                domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
-            }
-        },
-        csrfToken: {
-            name: `next-auth.csrf-token`,
-            options: {
-                httpOnly: true,
-                sameSite: 'lax',
-                path: '/',
-                secure: process.env.NODE_ENV === 'production',
-                domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+                secure: process.env.NODE_ENV === 'production'
             }
         }
     },

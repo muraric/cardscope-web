@@ -45,20 +45,17 @@ export default function Login() {
         }
     };
 
-    // ✅ Custom Google sign-in handler
+    // ✅ Simplified Google sign-in handler
     const handleGoogleSignIn = async () => {
         try {
-            if (Capacitor.isNativePlatform()) {
-                // Running inside Android/iOS app — use web redirect that will be handled by mobile detection
-                console.log("📱 Using mobile Google redirect");
-                await signIn("google", {
-                    callbackUrl: "/mobile-auth-success",
-                });
-            } else {
-                // Running in browser — use normal web redirect
-                console.log("💻 Using web Google redirect");
-                await signIn("google", { callbackUrl: "/" });
-            }
+            console.log("🔍 Starting Google sign-in...");
+            console.log("📱 Is native platform:", Capacitor.isNativePlatform());
+            
+            // Use a simple redirect approach
+            await signIn("google", {
+                callbackUrl: "/",
+                redirect: true
+            });
         } catch (err) {
             console.error("❌ Google sign-in failed:", err);
             setError("Google sign-in failed. Please try again.");
@@ -66,6 +63,7 @@ export default function Login() {
     };
 
     if (status === "loading") {
+        console.log("🔄 Session status: loading");
         return (
             <div className="min-h-screen flex flex-col items-center justify-center space-y-3 text-gray-500">
                 <img
