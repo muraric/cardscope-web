@@ -43,13 +43,13 @@ const handler = NextAuth({
     },
 
     callbacks: {
-        /** ✅ Custom OAuth callback to handle state issues */
+        /** ✅ Custom OAuth callback to handle mobile in-app browser */
         async redirect({ url, baseUrl }) {
             console.log("🔍 Redirect callback - URL:", url, "BaseURL:", baseUrl);
             
-            // Handle OAuth callback URLs
+            // Handle OAuth callback URLs - redirect back to app
             if (url.includes("/api/auth/callback/google")) {
-                console.log("🔄 OAuth callback detected");
+                console.log("🔄 OAuth callback detected, redirecting to app");
                 return `${baseUrl}/`;
             }
             
