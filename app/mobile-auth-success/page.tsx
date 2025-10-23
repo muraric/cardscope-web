@@ -23,8 +23,11 @@ export default function MobileAuthSuccess() {
                     
                     // Try to close the browser if it's open
                     try {
-                        const { Browser } = await import('@capacitor/browser');
-                        await Browser.close();
+                        // Only import Browser plugin in native environments
+                        if (typeof window !== 'undefined' && window.Capacitor?.isNativePlatform()) {
+                            const { Browser } = await import('@capacitor/browser');
+                            await Browser.close();
+                        }
                     } catch (err) {
                         console.log("Browser plugin not available or already closed");
                     }
