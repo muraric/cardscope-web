@@ -28,8 +28,56 @@ const handler = NextAuth({
     // ✅ Enable debug logging for troubleshooting
     debug: process.env.NODE_ENV === "development",
 
-    // ✅ Remove cookie configuration to use default behavior
-    // This should resolve the "State cookie was missing" error
+    // ✅ Configure cookies for mobile compatibility
+    cookies: {
+        sessionToken: {
+            name: `next-auth.session-token`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+                domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+            },
+        },
+        callbackUrl: {
+            name: `next-auth.callback-url`,
+            options: {
+                sameSite: 'lax',
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+            },
+        },
+        csrfToken: {
+            name: `next-auth.csrf-token`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+            },
+        },
+        pkceCodeVerifier: {
+            name: `next-auth.pkce.code_verifier`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 60 * 15, // 15 minutes
+            },
+        },
+        state: {
+            name: `next-auth.state`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 60 * 15, // 15 minutes
+            },
+        },
+    },
 
     session: {
         strategy: "jwt", // ✅ stateless sessions for Next.js
@@ -51,6 +99,12 @@ const handler = NextAuth({
             if (url.includes("/api/auth/callback/google")) {
                 console.log("🔄 OAuth callback detected, redirecting to app");
                 return `${baseUrl}/`;
+            }
+            
+            // Handle mobile auth success redirect
+            if (url.includes("/mobile-auth-success")) {
+                console.log("📱 Mobile auth success redirect");
+                return `${baseUrl}/mobile-auth-success`;
             }
             
             // Handle other redirects
