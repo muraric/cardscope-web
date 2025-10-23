@@ -20,8 +20,10 @@ const handler = NextAuth({
                     prompt: "select_account",
                     access_type: "offline",
                     response_type: "code",
+                    scope: "openid email profile",
                 },
             },
+            checks: [],
         }),
     ],
 
@@ -31,55 +33,8 @@ const handler = NextAuth({
     // ✅ Add secret for proper session handling
     secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
 
-    // ✅ Configure cookies for mobile compatibility
-    cookies: {
-        sessionToken: {
-            name: `next-auth.session-token`,
-            options: {
-                httpOnly: true,
-                sameSite: 'none',
-                path: '/',
-                secure: true,
-            },
-        },
-        callbackUrl: {
-            name: `next-auth.callback-url`,
-            options: {
-                sameSite: 'none',
-                path: '/',
-                secure: true,
-            },
-        },
-        csrfToken: {
-            name: `next-auth.csrf-token`,
-            options: {
-                httpOnly: true,
-                sameSite: 'none',
-                path: '/',
-                secure: true,
-            },
-        },
-        pkceCodeVerifier: {
-            name: `next-auth.pkce.code_verifier`,
-            options: {
-                httpOnly: true,
-                sameSite: 'none',
-                path: '/',
-                secure: true,
-                maxAge: 60 * 15, // 15 minutes
-            },
-        },
-        state: {
-            name: `next-auth.state`,
-            options: {
-                httpOnly: true,
-                sameSite: 'none',
-                path: '/',
-                secure: true,
-                maxAge: 60 * 15, // 15 minutes
-            },
-        },
-    },
+    // ✅ Use default cookie behavior but with custom settings
+    useSecureCookies: process.env.NODE_ENV === 'production',
 
     session: {
         strategy: "jwt", // ✅ stateless sessions for Next.js
