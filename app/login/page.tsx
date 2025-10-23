@@ -52,22 +52,11 @@ export default function Login() {
             console.log("📱 Is native platform:", Capacitor.isNativePlatform());
             
             if (Capacitor.isNativePlatform()) {
-                // Use Capacitor Browser for in-app OAuth
-                const { Browser } = await import('@capacitor/browser');
-                
-                const oauthUrl = `${window.location.origin}/api/auth/signin/google`;
-                console.log("📱 Opening OAuth in app browser:", oauthUrl);
-                
-                await Browser.open({ 
-                    url: oauthUrl,
-                    windowName: '_self'
-                });
-                
-                // Listen for the browser to close
-                Browser.addListener('browserFinished', () => {
-                    console.log("📱 Browser closed, checking auth status");
-                    // Refresh the page to check auth status
-                    window.location.reload();
+                // For mobile, use standard OAuth with mobile-specific callback
+                console.log("📱 Mobile platform detected, using mobile OAuth flow");
+                await signIn("google", {
+                    callbackUrl: "/mobile-auth-success",
+                    redirect: true
                 });
                 
             } else {
