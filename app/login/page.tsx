@@ -52,12 +52,36 @@ export default function Login() {
             console.log("📱 Is native platform:", Capacitor.isNativePlatform());
             
             if (Capacitor.isNativePlatform()) {
-                // For mobile, use standard OAuth with mobile-specific callback
-                console.log("📱 Mobile platform detected, using mobile OAuth flow");
-                await signIn("google", {
-                    callbackUrl: "/mobile-auth-success",
-                    redirect: true
-                });
+                // For mobile, use in-app browser with proper callback handling
+                console.log("📱 Mobile platform detected, using in-app browser");
+                
+                // Create OAuth URL with proper callback
+                const oauthUrl = `${window.location.origin}/api/auth/signin/google?callbackUrl=${encodeURIComponent('cardscope://auth-success')}`;
+                console.log("📱 OAuth URL:", oauthUrl);
+                
+                // Use Capacitor Browser to open OAuth in-app
+                try {
+                    const { Browser } = await import('@capacitor/browser');
+                    
+                    await Browser.open({ 
+                        url: oauthUrl,
+                        windowName: '_self'
+                    });
+                    
+                    // Listen for browser close event
+                    Browser.addListener('browserFinished', () => {
+                        console.log("📱 Browser closed, checking auth status");
+                        // Refresh the page to check if user is now authenticated
+                        window.location.reload();
+                    });
+                    
+                } catch (browserError) {
+                    console.log("📱 Browser plugin not available, falling back to standard OAuth");
+                    await signIn("google", {
+                        callbackUrl: "/mobile-auth-success",
+                        redirect: true
+                    });
+                }
                 
             } else {
                 // Use standard web OAuth
