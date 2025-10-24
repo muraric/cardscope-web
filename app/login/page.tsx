@@ -61,19 +61,24 @@ export default function Login() {
                 
                 // Use Capacitor Browser to open OAuth in-app
                 try {
-                    const { Browser } = await import('@capacitor/browser');
+                    // Dynamic import with error handling for webpack
+                    const BrowserModule = await import('@capacitor/browser').catch(() => null);
                     
-                    await Browser.open({ 
-                        url: oauthUrl,
-                        windowName: '_self'
-                    });
-                    
-                    // Listen for browser close event
-                    Browser.addListener('browserFinished', () => {
-                        console.log("📱 Browser closed, checking auth status");
-                        // Refresh the page to check if user is now authenticated
-                        window.location.reload();
-                    });
+                    if (BrowserModule?.Browser) {
+                        await BrowserModule.Browser.open({ 
+                            url: oauthUrl,
+                            windowName: '_self'
+                        });
+                        
+                        // Listen for browser close event
+                        BrowserModule.Browser.addListener('browserFinished', () => {
+                            console.log("📱 Browser closed, checking auth status");
+                            // Refresh the page to check if user is now authenticated
+                            window.location.reload();
+                        });
+                    } else {
+                        throw new Error("Browser module not available");
+                    }
                     
                 } catch (browserError) {
                     console.log("📱 Browser plugin not available, falling back to standard OAuth");
