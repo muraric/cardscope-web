@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        client_id: '375010610176-rf9ajtm5ut8r5oauel8dg5c50qqpjmrv.apps.googleusercontent.com',
+        client_id: '488875684334-urrslagsla2btuuri02acrunqum7d2bk.apps.googleusercontent.com',
         client_secret: clientSecret,
         code,
         grant_type: 'authorization_code',
