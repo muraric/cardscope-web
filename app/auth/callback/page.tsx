@@ -27,16 +27,24 @@ function CallbackContent() {
     }
   }, [searchParams, router]);
 
-  const redirectToApp = (status: string) => {
+  const redirectToApp = (status: string, userData?: any) => {
     // Check if we're in a mobile browser (not native app)
     const isMobileBrowser = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobileBrowser) {
       console.log('Detected mobile browser, attempting app redirect...');
       
-      // Try multiple redirect methods
-      const appUrl = `com.shomuran.cardscope://auth/callback?status=${status}`;
+      // Prepare the app URL with user data if available
+      let appUrl = `com.shomuran.cardscope://auth/callback?status=${status}`;
       
+      if (userData && status === 'success') {
+        // Encode user data as URL parameter
+        const encodedUserData = encodeURIComponent(JSON.stringify(userData));
+        appUrl += `&userData=${encodedUserData}`;
+        console.log('📱 Including user data in redirect:', userData);
+      }
+      
+      // Try multiple redirect methods
       // Method 1: Direct location change
       try {
         window.location.href = appUrl;
@@ -117,14 +125,14 @@ function CallbackContent() {
       if (response.ok) {
         const { user } = await response.json();
         
-        // Store user data
+        // Store user data in localStorage for web context
         localStorage.setItem('cardscope_user', JSON.stringify(user));
         
         // Trigger auth update event for same-tab updates
         window.dispatchEvent(new Event('authUpdated'));
         
-        // Redirect back to app or home page
-        redirectToApp('success');
+        // Redirect back to app with user data
+        redirectToApp('success', user);
       } else {
         throw new Error('Token exchange failed');
       }
