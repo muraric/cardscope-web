@@ -53,7 +53,7 @@ export default function Login() {
             
             // Build OAuth URL for both mobile and web
             const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-                `client_id=375010610176-rf9ajtm5ut8r5oauel8dg5c50qqpjmrv.apps.googleusercontent.com&` +
+                `client_id=488875684334-urrslagsla2btuuri02acrunqum7d2bk.apps.googleusercontent.com&` +
                 `redirect_uri=${encodeURIComponent('https://cardscope-web.vercel.app/auth/callback')}&` +
                 `response_type=code&` +
                 `scope=openid%20email%20profile&` +
