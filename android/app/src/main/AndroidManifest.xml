@@ -37,25 +37,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- ✅ Deep link intent for Google OAuth callback -->
-            <intent-filter>
+            <!-- ✅ Deep link intent for OAuth callback redirect -->
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                        android:scheme="cardscope"
-                        android:host="api"
-                        android:pathPrefix="/auth/callback/google" />
-            </intent-filter>
-
-            <!-- ✅ Deep link intent for auth success -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                        android:scheme="cardscope"
-                        android:host="auth-success" />
+                <data android:scheme="com.shomuran.cardscope" />
             </intent-filter>
 
             <!-- ✅ App Links for HTTPS OAuth redirect -->
@@ -66,17 +53,7 @@
                 <data
                         android:scheme="https"
                         android:host="cardscope-web.vercel.app"
-                        android:pathPrefix="/mobile-auth-success" />
-            </intent-filter>
-
-            <!-- ✅ Additional App Links for root domain -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                        android:scheme="https"
-                        android:host="cardscope-web.vercel.app" />
+                        android:pathPrefix="/auth/callback" />
             </intent-filter>
 
         </activity>

@@ -45,21 +45,24 @@ export default function Login() {
         }
     };
 
-    // ✅ Custom Google sign-in handler for mobile
+    // ✅ Custom Google sign-in handler using direct OAuth flow
     const handleGoogleSignIn = async () => {
         try {
             console.log("🔍 Starting Google sign-in...");
             console.log("📱 Is native platform:", Capacitor.isNativePlatform());
             
+            // Build OAuth URL for both mobile and web
+            const oauthUrl = `https://accounts.google.com/oauth/authorize?` +
+                `client_id=375010610176-rf9ajtm5ut8r5oauel8dg5c50qqpjmrv.apps.googleusercontent.com&` +
+                `redirect_uri=${encodeURIComponent('https://cardscope-web.vercel.app/auth/callback')}&` +
+                `response_type=code&` +
+                `scope=openid%20email%20profile&` +
+                `access_type=offline`;
+            
+            console.log("📱 OAuth URL:", oauthUrl);
+            
             if (Capacitor.isNativePlatform()) {
-                // For mobile, use in-app browser with proper callback handling
-                console.log("📱 Mobile platform detected, using in-app browser");
-                
-                // Create OAuth URL with proper callback
-                const oauthUrl = `${window.location.origin}/api/auth/signin/google?callbackUrl=${encodeURIComponent('cardscope://auth-success')}`;
-                console.log("📱 OAuth URL:", oauthUrl);
-                
-                // Use Capacitor Browser to open OAuth in-app
+                // For mobile, use Capacitor Browser to open OAuth in-app
                 try {
                     // Check if Browser is available on window object (Capacitor runtime)
                     if (typeof window !== 'undefined' && (window as any).Capacitor?.Plugins?.Browser) {
@@ -80,19 +83,12 @@ export default function Login() {
                     }
                     
                 } catch (browserError) {
-                    console.log("📱 Browser plugin not available, falling back to standard OAuth");
-                    await signIn("google", {
-                        callbackUrl: "/mobile-auth-success",
-                        redirect: true
-                    });
+                    console.log("📱 Browser plugin not available, falling back to window.open");
+                    window.open(oauthUrl, '_self');
                 }
-                
             } else {
-                // Use standard web OAuth
-                await signIn("google", {
-                    callbackUrl: "/",
-                    redirect: true
-                });
+                // For web, redirect directly to OAuth
+                window.location.href = oauthUrl;
             }
         } catch (err) {
             console.error("❌ Google sign-in failed:", err);
