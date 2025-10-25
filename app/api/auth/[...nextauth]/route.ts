@@ -58,6 +58,12 @@ const handler = NextAuth({
                 return `${baseUrl}/`;
             }
             
+            // Handle custom scheme callbacks (for mobile)
+            if (url.startsWith("cardscope://")) {
+                console.log("📱 Custom scheme callback detected:", url);
+                return `${baseUrl}/mobile-auth-success`;
+            }
+            
             // Handle mobile auth success redirect
             if (url.includes("/mobile-auth-success")) {
                 console.log("📱 Mobile auth success redirect");
