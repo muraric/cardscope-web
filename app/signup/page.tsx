@@ -3,9 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react"; // 👈 added for Google signup
 import api from "../../lib/api";
-import { setAuth } from "../../lib/auth";
 
 export default function Signup() {
     const router = useRouter();
@@ -31,7 +29,21 @@ export default function Signup() {
             });
 
             if (res.status === 200) {
-                setAuth({ email });
+                // Create user object compatible with our AuthContext
+                const userData = {
+                    id: email, // Use email as ID for manual signup
+                    name: name,
+                    email: email,
+                    picture: null // No picture for manual signup
+                };
+                
+                // Store in localStorage for AuthContext
+                localStorage.setItem('cardscope_user', JSON.stringify(userData));
+                
+                // Trigger auth update event
+                window.dispatchEvent(new Event('authUpdated'));
+                
+                console.log("✅ Manual signup successful:", email);
                 router.push("/settings");
             }
         } catch (err: any) {
