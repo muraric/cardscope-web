@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { clearAuth } from "../lib/auth";
 import { useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
-import { signOut } from "next-auth/react";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
+    const { signOut } = useAuth();
 
     useEffect(() => {
         const applyStatusBar = async () => {
@@ -40,8 +40,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
     const handleSignOut = async () => {
         try {
-            clearAuth();               // local
-            await signOut({ redirect: false }); // NextAuth
+            console.log("🔓 Signing out user...");
+            signOut(); // Use custom auth signOut
             router.replace("/login");
         } catch (err) {
             console.error("❌ Sign-out error:", err);
