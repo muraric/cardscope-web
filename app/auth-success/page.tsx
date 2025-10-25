@@ -8,17 +8,34 @@ function AuthSuccessContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    // Check URL parameters from Next.js router
     const status = searchParams.get('status');
     const userDataParam = searchParams.get('userData');
 
     console.log('📱 Auth success page loaded');
-    console.log('📱 Status:', status);
-    console.log('📱 User data param:', userDataParam);
+    console.log('📱 Status from searchParams:', status);
+    console.log('📱 User data param from searchParams:', userDataParam);
+    console.log('📱 Current URL:', window.location.href);
 
-    if (status === 'success' && userDataParam) {
+    // Also check if URL has query params directly (for deep link handling)
+    const urlParams = new URLSearchParams(window.location.search);
+    const directStatus = urlParams.get('status');
+    const directUserData = urlParams.get('userData');
+    
+    console.log('📱 Direct URL params - Status:', directStatus);
+    console.log('📱 Direct URL params - UserData:', directUserData);
+
+    // Use direct URL params if searchParams doesn't have them
+    const finalStatus = status || directStatus;
+    const finalUserData = userDataParam || directUserData;
+    
+    console.log('📱 Final Status:', finalStatus);
+    console.log('📱 Final User Data:', finalUserData);
+
+    if (finalStatus === 'success' && finalUserData) {
       try {
         // Decode and parse user data from URL parameter
-        const userData = JSON.parse(decodeURIComponent(userDataParam));
+        const userData = JSON.parse(decodeURIComponent(finalUserData));
         console.log('📱 Parsed user data:', userData);
 
         // Store user data in localStorage for the native app
@@ -39,7 +56,7 @@ function AuthSuccessContent() {
         // Still redirect to home page
         router.replace('/');
       }
-    } else if (status === 'success') {
+    } else if (finalStatus === 'success') {
       // Success but no user data - check if already authenticated
       const existingUser = localStorage.getItem('cardscope_user');
       if (existingUser) {
@@ -51,7 +68,7 @@ function AuthSuccessContent() {
       }
     } else {
       // Error or other status
-      console.log('❌ Auth failed or unknown status:', status);
+      console.log('❌ Auth failed or unknown status:', finalStatus);
       router.replace('/login');
     }
   }, [searchParams, router]);
