@@ -3,9 +3,8 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useAuth } from "../../contexts/AuthContext";
 import api from "../../lib/api";
-import { getAuth } from "../../lib/auth";
 import Layout from "../../components/Layout";
 import { AnimatePresence, motion } from "framer-motion";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -30,7 +29,7 @@ interface Profile {
 
 export default function Settings() {
     const router = useRouter();
-    const { data: session, status } = useSession();
+    const { user, isLoading } = useAuth();
 
     const [email, setEmail] = useState<string | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
@@ -58,22 +57,17 @@ export default function Settings() {
         run();
     }, []);
 
-    // Unified auth: allow NextAuth OR local auth
+    // Unified auth: use custom auth context
     useEffect(() => {
-        if (status === "loading") return;
+        if (isLoading) return;
 
-        const local = getAuth();
-        const nextAuthEmail = session?.user?.email ?? null;
-        const localEmail = local?.email ?? null;
-        const finalEmail = nextAuthEmail || localEmail;
-
-        if (!finalEmail) {
+        if (!user) {
             router.replace("/login");
             return;
         }
 
-        setEmail(finalEmail);
-    }, [status, session, router]);
+        setEmail(user.email);
+    }, [isLoading, user, router]);
 
     useEffect(() => {
         if (!email) return;
@@ -173,7 +167,7 @@ export default function Settings() {
         setExpandedCard(expandedCard === key ? null : key);
     };
 
-    if (status === "loading" || (!email && status !== "unauthenticated")) {
+    if (isLoading || (!email && !user)) {
         return (
             <div className="min-h-screen flex items-center justify-center text-gray-500">
                 Checking your session...
@@ -181,7 +175,7 @@ export default function Settings() {
         );
     }
 
-    if (!email && status === "unauthenticated") return null;
+    if (!user) return null;
 
     return (
         <Layout>
