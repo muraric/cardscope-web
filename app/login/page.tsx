@@ -52,7 +52,7 @@ export default function Login() {
             console.log("📱 Is native platform:", Capacitor.isNativePlatform());
             
             // Build OAuth URL for both mobile and web
-            const oauthUrl = `https://accounts.google.com/oauth/authorize?` +
+            const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
                 `client_id=375010610176-rf9ajtm5ut8r5oauel8dg5c50qqpjmrv.apps.googleusercontent.com&` +
                 `redirect_uri=${encodeURIComponent('https://cardscope-web.vercel.app/auth/callback')}&` +
                 `response_type=code&` +
