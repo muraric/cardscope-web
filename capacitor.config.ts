@@ -3,7 +3,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
     appId: 'com.shomuran.cardscope',
     appName: 'CardScope',
-    webDir: 'out',
+    webDir: '.next',
     server: {
         androidScheme: 'https'
     },

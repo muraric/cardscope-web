@@ -4,6 +4,6 @@ const nextConfig = {
     swcMinify: true,
 
     // 👇 This tells Next.js to generate static HTML in the /out folder
-    //output: 'export',
+    output: 'export',
 };
 module.exports = nextConfig;
