@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 
 import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
-import {useSession} from "next-auth/react";
+import {useAuth} from "../contexts/AuthContext";
 import Layout from "../components/Layout";
 import SuggestionsList from "../components/SuggestionsList";
 import BestCardBanner from "../components/BestCardBanner";
@@ -27,7 +27,7 @@ type StoreInfo = {
 
 export default function Suggestions() {
     const router = useRouter();
-    const {data: session, status} = useSession();
+    const {user, isLoading} = useAuth();
 
     // Auth
     const [email, setEmail] = useState<string | null>(null);
@@ -69,19 +69,18 @@ export default function Suggestions() {
 
     // Unified auth guard
     useEffect(() => {
-        if (status === "loading") return;
+        if (isLoading) return;
 
-        const localAuth = getAuth();
-        const nextAuthEmail = session?.user?.email ?? null;
-        const localEmail = localAuth?.email ?? null;
-        const finalEmail = nextAuthEmail || localEmail;
-
-        if (!finalEmail) {
-            router.replace("/login");
+        if (!user) {
+            console.log("❌ No auth found, redirecting to login");
+            router.push("/login");
             return;
         }
-        setEmail(finalEmail);
-    }, [status, session, router]);
+
+        setEmail(user.email);
+        setUserName(user.name || "there");
+        console.log("✅ Auth found:", user.email);
+    }, [isLoading, user, router]);
 
     // Fetch profile (name + hasCards)
     useEffect(() => {
@@ -222,8 +221,7 @@ export default function Suggestions() {
     };
 
     // Show nothing while verifying auth
-
-    if (status === "loading" || (!email && status !== "unauthenticated")) {
+    if (isLoading || (!email && !user)) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 space-y-3">
                 <LoadingSpinner />
@@ -232,9 +230,11 @@ export default function Suggestions() {
         );
     }
 
-
-    // If truly unauthenticated, the guard above will have redirected; render nothing.
-    if (!email && status === "unauthenticated") return null;
+    // If truly unauthenticated, redirect to login
+    if (!user) {
+        router.push('/login');
+        return null;
+    }
 
     const getCategoryColor = (cat: string | null) => {
         const normalized = cat ? cat.toLowerCase() : "";

@@ -3,14 +3,14 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { signIn, useSession } from "next-auth/react";
+import { useAuth } from "../../contexts/AuthContext";
 import api from "../../lib/api";
 import { setAuth } from "../../lib/auth";
 import { Capacitor } from "@capacitor/core";
 
 export default function Login() {
     const router = useRouter();
-    const { data: session, status } = useSession();
+    const { user, isLoading } = useAuth();
     const redirected = useRef(false);
 
     const [email, setEmail] = useState("");
@@ -19,12 +19,12 @@ export default function Login() {
 
     // ✅ Redirect once after successful login
     useEffect(() => {
-        if (status === "authenticated" && !redirected.current) {
+        if (user && !isLoading && !redirected.current) {
             redirected.current = true;
             console.log("✅ Login success → redirecting to /");
             router.replace("/");
         }
-    }, [status, router]);
+    }, [user, isLoading, router]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -96,8 +96,8 @@ export default function Login() {
         }
     };
 
-    if (status === "loading") {
-        console.log("🔄 Session status: loading");
+    if (isLoading) {
+        console.log("🔄 Auth status: loading");
         return (
             <div className="min-h-screen flex flex-col items-center justify-center space-y-3 text-gray-500">
                 <img
@@ -110,7 +110,7 @@ export default function Login() {
         );
     }
 
-    if (status === "authenticated") {
+    if (user) {
         return (
             <div className="min-h-screen flex items-center justify-center text-gray-500">
                 Redirecting to your dashboard...

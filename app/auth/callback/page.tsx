@@ -120,6 +120,9 @@ function CallbackContent() {
         // Store user data
         localStorage.setItem('cardscope_user', JSON.stringify(user));
         
+        // Trigger auth update event for same-tab updates
+        window.dispatchEvent(new Event('authUpdated'));
+        
         // Redirect back to app or home page
         redirectToApp('success');
       } else {
