@@ -36,8 +36,23 @@ export default function Login() {
         }
 
         try {
-            await api.post("/api/auth/login", { email, password });
-            setAuth({ email });
+            const response = await api.post("/api/auth/login", { email, password });
+            
+            // Create user object compatible with our AuthContext
+            const userData = {
+                id: email, // Use email as ID for manual login
+                name: response.data?.name || email.split('@')[0], // Use name from response or email prefix
+                email: email,
+                picture: null // No picture for manual login
+            };
+            
+            // Store in localStorage for AuthContext
+            localStorage.setItem('cardscope_user', JSON.stringify(userData));
+            
+            // Trigger auth update event
+            window.dispatchEvent(new Event('authUpdated'));
+            
+            console.log("✅ Manual login successful:", email);
             router.replace("/");
         } catch (err) {
             console.error("❌ Login failed:", err);

@@ -3,9 +3,8 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react"; // 👈 added for Google signup
 import api from "../../lib/api";
-import { setAuth } from "../../lib/auth";
+import { Capacitor } from "@capacitor/core";
 
 export default function Signup() {
     const router = useRouter();
@@ -13,6 +12,57 @@ export default function Signup() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+
+    // Google OAuth handler for signup
+    const handleGoogleSignUp = async () => {
+        try {
+            console.log("🔍 Starting Google sign-up...");
+            console.log("📱 Is native platform:", Capacitor.isNativePlatform());
+            
+            // Build OAuth URL for both mobile and web
+            const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+                `client_id=488875684334-urrslagsla2btuuri02acrunqum7d2bk.apps.googleusercontent.com&` +
+                `redirect_uri=${encodeURIComponent('https://cardscope-web.vercel.app/auth/callback')}&` +
+                `response_type=code&` +
+                `scope=openid%20email%20profile&` +
+                `access_type=offline`;
+            
+            console.log("📱 OAuth URL:", oauthUrl);
+            
+            if (Capacitor.isNativePlatform()) {
+                // For mobile, use Capacitor Browser to open OAuth in-app
+                try {
+                    // Check if Browser is available on window object (Capacitor runtime)
+                    if (typeof window !== 'undefined' && (window as any).Capacitor?.Plugins?.Browser) {
+                        const { Browser } = (window as any).Capacitor.Plugins;
+                        await Browser.open({ 
+                            url: oauthUrl,
+                            windowName: '_self'
+                        });
+                        
+                        // Listen for browser close event
+                        Browser.addListener('browserFinished', () => {
+                            console.log("📱 Browser closed, checking auth status");
+                            // Refresh the page to check if user is now authenticated
+                            window.location.reload();
+                        });
+                    } else {
+                        throw new Error("Browser module not available");
+                    }
+                    
+                } catch (browserError) {
+                    console.log("📱 Browser plugin not available, falling back to window.open");
+                    window.open(oauthUrl, '_self');
+                }
+            } else {
+                // For web, redirect directly to OAuth
+                window.location.href = oauthUrl;
+            }
+        } catch (err) {
+            console.error("❌ Google sign-up failed:", err);
+            setError("Google sign-up failed. Please try again.");
+        }
+    };
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -31,7 +81,21 @@ export default function Signup() {
             });
 
             if (res.status === 200) {
-                setAuth({ email });
+                // Create user object compatible with our AuthContext
+                const userData = {
+                    id: email, // Use email as ID for manual signup
+                    name: name,
+                    email: email,
+                    picture: null // No picture for manual signup
+                };
+                
+                // Store in localStorage for AuthContext
+                localStorage.setItem('cardscope_user', JSON.stringify(userData));
+                
+                // Trigger auth update event
+                window.dispatchEvent(new Event('authUpdated'));
+                
+                console.log("✅ Manual signup successful:", email);
                 router.push("/settings");
             }
         } catch (err: any) {
@@ -101,7 +165,7 @@ export default function Signup() {
 
                 {/* Google Sign Up button */}
                 <button
-                    onClick={() => signIn("google", { callbackUrl: "/settings" })}
+                    onClick={handleGoogleSignUp}
                     className="flex items-center justify-center w-full border border-gray-300 rounded-lg py-2 hover:bg-gray-50 transition"
                 >
                     <img
