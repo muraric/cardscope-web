@@ -8,8 +8,8 @@ android {
         applicationId "com.shomuran.cardscope"
         minSdkVersion 23
         targetSdkVersion 35
-        versionCode 1
-        versionName "1.0"
+        versionCode 9
+        versionName "1.0.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // ✅ Handle web asset packaging properly
@@ -25,10 +25,20 @@ android {
         targetCompatibility JavaVersion.VERSION_21
     }
 
+    signingConfigs {
+        release {
+            storeFile file('cardscope.keystore')
+            storePassword "cardscope"
+            keyAlias "cardscope"
+            keyPassword "cardscope"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }

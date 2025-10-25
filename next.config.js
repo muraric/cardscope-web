@@ -2,8 +2,8 @@
 const nextConfig = {
     reactStrictMode: true,
     swcMinify: true,
-
-    // 👇 This tells Next.js to generate static HTML in the /out folder
-    //output: 'export',
+    
+    // Explicitly disable static export for API routes
+    output: undefined,
 };
 module.exports = nextConfig;
