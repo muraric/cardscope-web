@@ -90,8 +90,24 @@ export default function Login() {
                         // Listen for browser close event
                         Browser.addListener('browserFinished', () => {
                             console.log("📱 Browser closed, checking auth status");
-                            // Refresh the page to check if user is now authenticated
-                            window.location.reload();
+                            
+                            // Check localStorage for user data periodically
+                            const checkAuth = setInterval(() => {
+                                const storedUser = localStorage.getItem('cardscope_user');
+                                console.log("📱 Checking localStorage for user data...");
+                                
+                                if (storedUser) {
+                                    console.log("✅ User data found in localStorage!");
+                                    clearInterval(checkAuth);
+                                    window.location.reload();
+                                }
+                            }, 500);
+                            
+                            // Stop checking after 10 seconds
+                            setTimeout(() => {
+                                clearInterval(checkAuth);
+                                console.log("⏰ Stopped checking for auth data");
+                            }, 10000);
                         });
                     } else {
                         throw new Error("Browser module not available");

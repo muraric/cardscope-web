@@ -125,13 +125,32 @@ function CallbackContent() {
       if (response.ok) {
         const { user } = await response.json();
         
+        console.log('✅ Got user from OAuth:', user);
+        
         // Store user data in localStorage for web context
         localStorage.setItem('cardscope_user', JSON.stringify(user));
+        console.log('✅ Stored user in localStorage');
         
         // Trigger auth update event for same-tab updates
         window.dispatchEvent(new Event('authUpdated'));
+        console.log('✅ Dispatched authUpdated event');
+        
+        // For mobile apps, also try to store via WebView postMessage (Capacitor specific)
+        if ((window as any).Capacitor) {
+          console.log('📱 Capacitor detected, attempting postMessage to store user data');
+          try {
+            // Try to store in app context using Capacitor's native bridge
+            window.postMessage({
+              type: 'OAUTH_SUCCESS',
+              user: user
+            }, '*');
+          } catch (error) {
+            console.error('❌ Failed to send postMessage:', error);
+          }
+        }
         
         // Redirect back to app with user data
+        console.log('🔄 Redirecting to app with user data');
         redirectToApp('success', user);
       } else {
         throw new Error('Token exchange failed');
