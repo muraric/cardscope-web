@@ -193,57 +193,98 @@ export default function Suggestions() {
         if (!email) return;
         if (!ensureHasCards()) return;
 
-        if (!navigator.geolocation) {
-            setErrMsg("Geolocation is not supported by your browser.");
-            return;
-        }
+        const isNative = Capacitor.isNativePlatform();
+        let latitude: number, longitude: number;
 
         setErrMsg(null);
         setLoading(true);
 
-        navigator.geolocation.getCurrentPosition(
-            async (pos) => {
-                try {
-                    const {latitude, longitude} = pos.coords;
-                    const res = await api.get("/api/google/detect-stores-v1", {
-                        params: {latitude, longitude},
-                    });
-
-                    let stores: StoreInfo[] = [];
-                    if (res.data?.stores?.places && Array.isArray(res.data.stores.places)) {
-                        stores = res.data.stores.places.map((p: any) => ({
-                            name: p.displayName?.text || "Unknown",
-                            category: p.primaryType || "general",
-                        }));
-                    } else if (Array.isArray(res.data?.stores)) {
-                        stores = res.data.stores.map((s: any) => ({
-                            name: s.name,
-                            category: s.category,
-                        }));
+        try {
+            if (isNative) {
+                // Use Capacitor Geolocation plugin for native apps
+                const {Geolocation} = await import('@capacitor/geolocation');
+                
+                console.log("📱 Requesting location permissions on native platform...");
+                const permissions = await Geolocation.checkPermissions();
+                
+                if (permissions.location !== 'granted') {
+                    console.log("📱 Location not granted, requesting...");
+                    const requestResult = await Geolocation.requestPermissions();
+                    
+                    if (requestResult.location !== 'granted') {
+                        setLoading(false);
+                        setErrMsg("Location permission is required to detect nearby stores. Please enable it in your device settings.");
+                        return;
                     }
-
-                    if (stores.length === 0) {
-                        await handleSubmit("Unknown Store", "general");
-                    } else {
-                        setStoreOptions(stores);
-                        setShowModal(true);
-                    }
-                } catch (err: any) {
-                    console.error("❌ Detect stores error:", err);
-                    setErrMsg("Failed to detect stores.");
-                } finally {
-                    setLoading(false);
                 }
-            },
-            (geoErr) => {
-                console.error("❌ Geolocation error:", geoErr);
-                setLoading(false);
-                setErrMsg(
-                    geoErr?.message ||
-                    "Unable to access location. Please allow location permissions."
-                );
+                
+                console.log("📱 Getting current position...");
+                const position = await Geolocation.getCurrentPosition({timeout: 10000});
+                latitude = position.coords.latitude;
+                longitude = position.coords.longitude;
+                console.log("📍 Got position:", latitude, longitude);
+            } else {
+                // Use browser geolocation for web
+                if (!navigator.geolocation) {
+                    setErrMsg("Geolocation is not supported by your browser.");
+                    setLoading(false);
+                    return;
+                }
+
+                console.log("🌐 Requesting geolocation from browser...");
+                const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        timeout: 10000,
+                        enableHighAccuracy: true
+                    });
+                });
+                
+                latitude = pos.coords.latitude;
+                longitude = pos.coords.longitude;
+                console.log("📍 Got position:", latitude, longitude);
             }
-        );
+
+            // Fetch stores from API
+            console.log("🏬 Fetching nearby stores...");
+            const res = await api.get("/api/google/detect-stores-v1", {
+                params: {latitude, longitude},
+            });
+
+            let stores: StoreInfo[] = [];
+            if (res.data?.stores?.places && Array.isArray(res.data.stores.places)) {
+                stores = res.data.stores.places.map((p: any) => ({
+                    name: p.displayName?.text || "Unknown",
+                    category: p.primaryType || "general",
+                }));
+            } else if (Array.isArray(res.data?.stores)) {
+                stores = res.data.stores.map((s: any) => ({
+                    name: s.name,
+                    category: s.category,
+                }));
+            }
+
+            if (stores.length === 0) {
+                await handleSubmit("Unknown Store", "general");
+            } else {
+                setStoreOptions(stores);
+                setShowModal(true);
+            }
+        } catch (err: any) {
+            console.error("❌ Location error:", err);
+            setLoading(false);
+            
+            if (err.message?.includes('denied') || err.code === 1) {
+                setErrMsg("Location access denied. Please enable location services in your device settings.");
+            } else if (err.message?.includes('timeout') || err.code === 3) {
+                setErrMsg("Location request timed out. Please try again.");
+            } else if (err.message?.includes('unavailable')) {
+                setErrMsg("Location services are unavailable. Please try again later.");
+            } else {
+                setErrMsg("Unable to get your location. Please check your device settings.");
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Show nothing while verifying auth
@@ -336,19 +377,31 @@ export default function Suggestions() {
 
                 {errMsg && (
                     <div className="flex flex-col items-center p-5 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800 text-center shadow-sm space-y-2">
-                        <div className="text-3xl">💳</div>
+                        <div className="text-3xl">⚠️</div>
                         <div>
                             <p className="font-semibold mb-1">
-                                {errMsg.includes("Please Enter store name") ? "Store name required" : "No cards found"}
+                                {errMsg.includes("Please Enter store name") ? "Store name required" : 
+                                 errMsg.includes("add cards") ? "Add cards to get started" :
+                                 errMsg.includes("Geolocation") || errMsg.includes("location") ? "Location access needed" :
+                                 "Action required"}
                             </p>
                             <p className="text-sm">{errMsg}</p>
                         </div>
-                        <button
-                            onClick={() => router.push("/settings")}
-                            className="btn btn-primary w-full sm:w-auto"
-                        >
-                            Go to Settings
-                        </button>
+                        {errMsg.includes("add cards") ? (
+                            <button
+                                onClick={() => router.push("/settings")}
+                                className="btn btn-primary w-full sm:w-auto"
+                            >
+                                Go to Settings
+                            </button>
+                        ) : errMsg.includes("location") || errMsg.includes("Geolocation") ? (
+                            <button
+                                onClick={() => handleDetectStore()}
+                                className="btn btn-primary w-full sm:w-auto"
+                            >
+                                Try Again
+                            </button>
+                        ) : null}
                     </div>
                 )}
 
