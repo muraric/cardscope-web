@@ -35,13 +35,14 @@ function CallbackContent() {
       console.log('Detected mobile browser, attempting app redirect...');
       
       // Prepare the app URL with user data if available
-      let appUrl = `cardscope://auth-success?status=${status}`;  // Changed from com.shomuran.cardscope://auth/callback
+      let appUrl = `cardscope:///?status=${status}`;  // Changed to redirect to home with params
       
       if (userData && status === 'success') {
         // Encode user data as URL parameter
         const encodedUserData = encodeURIComponent(JSON.stringify(userData));
         appUrl += `&userData=${encodedUserData}`;
         console.log('📱 Including user data in redirect:', userData);
+        console.log('📱 Full redirect URL:', appUrl);
       }
       
       // Try multiple redirect methods
