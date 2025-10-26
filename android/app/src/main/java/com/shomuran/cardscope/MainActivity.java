@@ -34,15 +34,24 @@ public class MainActivity extends BridgeActivity {
         handleDeepLink(getIntent());
         
         // Set up WebChromeClient to capture JavaScript console logs
-        Bridge bridge = getBridge();
-        if (bridge != null && bridge.getWebView() != null) {
-            bridge.getWebView().setWebChromeClient(new WebChromeClient() {
+        // Use post() to run after WebView is initialized
+        if (getBridge() != null) {
+            getWindow().getDecorView().post(new Runnable() {
                 @Override
-                public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
-                    Log.d("CardScopeJS", consoleMessage.message() + " -- From line "
-                            + consoleMessage.lineNumber() + " of "
-                            + consoleMessage.sourceId());
-                    return true;
+                public void run() {
+                    Bridge bridge = getBridge();
+                    if (bridge != null && bridge.getWebView() != null) {
+                        bridge.getWebView().setWebChromeClient(new WebChromeClient() {
+                            @Override
+                            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                                Log.d(TAG, "JS: " + consoleMessage.message() + " -- From line "
+                                        + consoleMessage.lineNumber() + " of "
+                                        + consoleMessage.sourceId());
+                                return true;
+                            }
+                        });
+                        Log.d(TAG, "WebChromeClient configured");
+                    }
                 }
             });
         }
