@@ -48,16 +48,21 @@ export default function Login() {
             
             // Store in localStorage for AuthContext
             localStorage.setItem('cardscope_user', JSON.stringify(userData));
+            console.log("✅ Stored user in localStorage:", userData);
             
-            // Trigger auth update event
+            // Trigger auth update event multiple times to ensure it's caught
+            window.dispatchEvent(new Event('authUpdated'));
+            
+            // Give React time to process the state update
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            // Trigger again to be safe
             window.dispatchEvent(new Event('authUpdated'));
             
             console.log("✅ Manual login successful:", email);
             
-            // Wait a moment for AuthContext to update, then navigate
-            setTimeout(() => {
-                router.replace("/");
-            }, 100);
+            // Use window.location for a hard redirect to ensure clean state
+            window.location.href = '/';
         } catch (err) {
             console.error("❌ Login failed:", err);
             setError("Invalid email or password. Please try again.");
