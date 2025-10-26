@@ -69,7 +69,12 @@ export default function Suggestions() {
 
     // Unified auth guard
     useEffect(() => {
-        if (isLoading) return;
+        console.log("🔍 Page.tsx - Auth check - isLoading:", isLoading, "user:", user);
+        
+        if (isLoading) {
+            console.log("⏳ Still loading, waiting...");
+            return;
+        }
 
         if (!user) {
             console.log("❌ No auth found, redirecting to login");
@@ -77,9 +82,9 @@ export default function Suggestions() {
             return;
         }
 
+        console.log("✅ Auth found in page.tsx:", user.email, "name:", user.name);
         setEmail(user.email);
         setUserName(user.name || "there");
-        console.log("✅ Auth found:", user.email);
     }, [isLoading, user, router]);
 
     // Fetch profile (name + hasCards)
