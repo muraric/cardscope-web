@@ -1,0 +1,24 @@
+{
+	"appId": "com.shomuran.cardscope",
+	"appName": "CardScope",
+	"webDir": "dist",
+	"server": {
+		"url": "https://cardscope-web.vercel.app",
+		"androidScheme": "https",
+		"iosScheme": "https"
+	},
+	"plugins": {
+		"GoogleAuth": {
+			"scopes": [
+				"profile",
+				"email"
+			],
+			"serverClientId": "488875684334-urrslagsla2btuuri02acrunqum7d2bk.apps.googleusercontent.com",
+			"forceCodeForRefreshToken": true
+		}
+	},
+	"packageClassList": [
+		"GeolocationPlugin",
+		"StatusBarPlugin"
+	]
+}

@@ -25,6 +25,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Check for existing user in localStorage (define outside useEffect for reuse)
   const checkAuth = () => {
     try {
+      // Check if localStorage is available (might not be in some contexts)
+      if (typeof localStorage === 'undefined') {
+        console.log('⚠️ localStorage not available');
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
+      
       const storedUser = localStorage.getItem('cardscope_user');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
@@ -47,28 +55,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for deep link from Capacitor (for mobile)
     if (Capacitor.isNativePlatform()) {
-      const checkDeepLink = () => {
-        try {
-          // Check if window has the deep link URL information
-          const url = window.location.href;
-          
-          // For Capacitor apps, check if we're handling a deep link
-          if (url.includes('cardscope://')) {
-            console.log('📱 Detected deep link in URL:', url);
-            handleDeepLinkUrl(url);
-          }
-        } catch (error) {
-          console.error('Error checking deep link:', error);
+      console.log('📱 Setting up deep link listeners...');
+      
+      // Listen for Capacitor's appUrlOpen event
+      const handleAppUrlOpen = (event: any) => {
+        console.log('📱 Received appUrlOpen event:', event.detail?.url);
+        if (event.detail?.url && event.detail.url.includes('cardscope://')) {
+          handleDeepLinkUrl(event.detail.url);
         }
       };
-
-      // Check on mount
-      setTimeout(checkDeepLink, 100);
       
-      // Also listen for hashchange which might be used by Capacitor
-      window.addEventListener('hashchange', checkDeepLink);
+      window.addEventListener('appUrlOpen', handleAppUrlOpen);
       
-      // Listen for custom deepLink event from Native
+      // Also listen for custom deepLink event
       const handleDeepLinkEvent = (event: any) => {
         console.log('📱 Received deepLink event from native:', event.detail);
         handleDeepLinkUrl(event.detail);
@@ -76,10 +75,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       window.addEventListener('deepLink', handleDeepLinkEvent);
       
-      // Cleanup listener on unmount
+      // Also check window.location periodically for deep links
+      const checkLocation = () => {
+        const url = window.location.href;
+        if (url && url.includes('cardscope://')) {
+          console.log('📱 Found cardscope:// in window.location:', url);
+          handleDeepLinkUrl(url);
+        }
+      };
+      
+      // Check immediately and then every second
+      checkLocation();
+      const interval = setInterval(checkLocation, 1000);
+      
+      // Cleanup listeners on unmount
       return () => {
-        window.removeEventListener('hashchange', checkDeepLink);
+        window.removeEventListener('appUrlOpen', handleAppUrlOpen);
         window.removeEventListener('deepLink', handleDeepLinkEvent);
+        clearInterval(interval);
       };
     }
 

@@ -3,7 +3,7 @@ const nextConfig = {
     reactStrictMode: true,
     swcMinify: true,
     
-    // Explicitly disable static export for API routes
-    output: undefined,
+    // Use standalone output for Capacitor
+    output: 'standalone',
 };
 module.exports = nextConfig;

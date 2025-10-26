@@ -55,10 +55,15 @@ export default function Suggestions() {
         const run = async () => {
             try {
                 if (!Capacitor.isNativePlatform()) return;
-                if (Capacitor.getPlatform() === "android") {
+                const platform = Capacitor.getPlatform();
+                
+                if (platform === "android") {
                     await StatusBar.setOverlaysWebView({overlay: false});
                     await StatusBar.setStyle({style: Style.Dark});
                     await StatusBar.setBackgroundColor({color: "#ffffff"});
+                } else if (platform === "ios") {
+                    await StatusBar.setOverlaysWebView({overlay: false});
+                    await StatusBar.setStyle({style: Style.Light});
                 }
             } catch {
                 /* ignore */
@@ -287,18 +292,33 @@ export default function Suggestions() {
         }
     };
 
+    // Force redirect to login after timeout if still loading
+    useEffect(() => {
+        if (!isLoading) return;
+        
+        const timer = setTimeout(() => {
+            console.log('⏱️ Auth check timeout, redirecting to login');
+            if (!user) {
+                router.push('/login');
+            }
+        }, 3000); // 3 second timeout
+        
+        return () => clearTimeout(timer);
+    }, [isLoading, user, router]);
+
     // Show nothing while verifying auth
     if (isLoading || (!email && !user)) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 space-y-3">
                 <LoadingSpinner />
-                <p className="text-gray-500 text-sm">Signing you in...</p>
+                <p className="text-gray-500 text-sm">Checking authentication...</p>
             </div>
         );
     }
 
     // If truly unauthenticated, redirect to login
     if (!user) {
+        console.log('❌ No user found, redirecting to login');
         router.push('/login');
         return null;
     }
