@@ -53,7 +53,11 @@ export default function Login() {
             window.dispatchEvent(new Event('authUpdated'));
             
             console.log("✅ Manual login successful:", email);
-            router.replace("/");
+            
+            // Wait a moment for AuthContext to update, then navigate
+            setTimeout(() => {
+                router.replace("/");
+            }, 100);
         } catch (err) {
             console.error("❌ Login failed:", err);
             setError("Invalid email or password. Please try again.");
