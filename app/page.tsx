@@ -77,6 +77,27 @@ export default function Suggestions() {
         }
 
         if (!user) {
+            // Try to get user from URL parameters (for OAuth deep link)
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            const userDataParam = urlParams.get('userData');
+            
+            console.log("📱 Checking URL params - status:", status, "userData:", userDataParam ? "exists" : "none");
+            
+            if (status === 'success' && userDataParam) {
+                try {
+                    const userData = JSON.parse(decodeURIComponent(userDataParam));
+                    console.log("✅ Found user data in URL, storing...", userData);
+                    localStorage.setItem('cardscope_user', JSON.stringify(userData));
+                    window.dispatchEvent(new Event('authUpdated'));
+                    // Refresh to trigger auth check again
+                    window.location.href = '/';
+                    return;
+                } catch (error) {
+                    console.error("❌ Failed to parse user data from URL:", error);
+                }
+            }
+            
             console.log("❌ No auth found, redirecting to login");
             router.push("/login");
             return;
