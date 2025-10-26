@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { Capacitor } from '@capacitor/core';
 
 interface User {
   id: string;
@@ -43,6 +44,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     checkAuth();
 
+    // Listen for deep link from Capacitor (for mobile)
+    if (Capacitor.isNativePlatform()) {
+      const checkDeepLink = () => {
+        try {
+          // Check if window has the deep link URL information
+          const url = window.location.href;
+          
+          // For Capacitor apps, check if we're handling a deep link
+          if (url.includes('cardscope://')) {
+            console.log('📱 Detected deep link in URL:', url);
+            handleDeepLinkUrl(url);
+          }
+        } catch (error) {
+          console.error('Error checking deep link:', error);
+        }
+      };
+
+      // Check on mount
+      setTimeout(checkDeepLink, 100);
+      
+      // Also listen for hashchange which might be used by Capacitor
+      window.addEventListener('hashchange', checkDeepLink);
+    }
+
     // Listen for storage changes (when user logs in from another tab)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'cardscope_user') {
@@ -71,6 +96,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('authUpdated', handleAuthUpdate);
     };
   }, []);
+
+  const handleDeepLinkUrl = (url: string) => {
+    try {
+      console.log('🔗 Processing deep link URL:', url);
+      
+      // Parse the deep link URL (cardscope://auth-success?status=success&userData=...)
+      const urlObj = new URL(url);
+      
+      // Check if we're on auth-success with success status
+      if (urlObj.pathname.includes('auth-success')) {
+        const status = urlObj.searchParams.get('status');
+        const userDataParam = urlObj.searchParams.get('userData');
+        
+        console.log('📱 Deep link status:', status);
+        console.log('📱 Deep link userData:', userDataParam);
+        
+        if (status === 'success' && userDataParam) {
+          // Decode and parse user data
+          const userData = JSON.parse(decodeURIComponent(userDataParam));
+          console.log('📱 Parsed user data from deep link:', userData);
+          
+          // Store in localStorage
+          localStorage.setItem('cardscope_user', JSON.stringify(userData));
+          
+          // Update state
+          setUser(userData);
+          
+          // Trigger event
+          window.dispatchEvent(new Event('authUpdated'));
+          
+          console.log('✅ User data stored from deep link');
+        }
+      }
+    } catch (error) {
+      console.error('Error processing deep link:', error);
+    }
+  };
 
   const signOut = () => {
     localStorage.removeItem('cardscope_user');
