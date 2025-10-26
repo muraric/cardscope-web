@@ -22,26 +22,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for existing user in localStorage
-    const checkAuth = () => {
-      try {
-        const storedUser = localStorage.getItem('cardscope_user');
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          setUser(userData);
-          console.log('✅ User found in localStorage:', userData.email);
-        } else {
-          console.log('❌ No user found in localStorage');
-        }
-      } catch (error) {
-        console.error('Error checking auth:', error);
+  // Check for existing user in localStorage (define outside useEffect for reuse)
+  const checkAuth = () => {
+    try {
+      const storedUser = localStorage.getItem('cardscope_user');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        console.log('✅ User found in localStorage:', userData.email);
+      } else {
         setUser(null);
-      } finally {
-        setIsLoading(false);
+        console.log('❌ No user found in localStorage');
       }
-    };
+    } catch (error) {
+      console.error('Error checking auth:', error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     checkAuth();
 
     // Listen for deep link from Capacitor (for mobile)
