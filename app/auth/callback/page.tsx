@@ -35,7 +35,7 @@ function CallbackContent() {
       console.log('Detected mobile browser, attempting app redirect...');
       
       // Prepare the app URL with user data if available
-      let appUrl = `com.shomuran.cardscope://auth/callback?status=${status}`;
+      let appUrl = `cardscope://auth-success?status=${status}`;  // Changed from com.shomuran.cardscope://auth/callback
       
       if (userData && status === 'success') {
         // Encode user data as URL parameter
