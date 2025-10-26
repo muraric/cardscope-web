@@ -3,9 +3,12 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
     appId: 'com.shomuran.cardscope',
     appName: 'CardScope',
-    webDir: '.next',
+    webDir: 'dist',
     server: {
-        androidScheme: 'https'
+        // Use production Vercel URL
+        url: 'https://cardscope-web.vercel.app',
+        androidScheme: 'https',
+        iosScheme: 'https'
     },
     plugins: {
         GoogleAuth: {

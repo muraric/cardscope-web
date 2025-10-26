@@ -16,6 +16,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
+    // Determine redirect_uri based on request origin
+    const origin = request.headers.get('origin') || request.headers.get('host');
+    const isLocalhost = origin?.includes('localhost') || origin?.includes('127.0.0.1');
+    const redirectUri = isLocalhost 
+      ? 'http://localhost:3000/auth/callback'
+      : 'https://cardscope-web.vercel.app/auth/callback';
+
     // Exchange code for tokens using Google's token endpoint
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -27,7 +34,7 @@ export async function POST(request: NextRequest) {
         client_secret: clientSecret,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: 'https://cardscope-web.vercel.app/auth/callback',
+        redirect_uri: redirectUri,
       }),
     });
 

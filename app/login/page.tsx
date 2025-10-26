@@ -76,9 +76,15 @@ export default function Login() {
             console.log("📱 Is native platform:", Capacitor.isNativePlatform());
             
             // Build OAuth URL for both mobile and web
+            // Use localhost callback for dev, Vercel for production
+            const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const redirectUri = isDev 
+                ? 'http://localhost:3000/auth/callback'
+                : 'https://cardscope-web.vercel.app/auth/callback';
+            
             const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
                 `client_id=488875684334-urrslagsla2btuuri02acrunqum7d2bk.apps.googleusercontent.com&` +
-                `redirect_uri=${encodeURIComponent('https://cardscope-web.vercel.app/auth/callback')}&` +
+                `redirect_uri=${encodeURIComponent(redirectUri)}&` +
                 `response_type=code&` +
                 `scope=openid%20email%20profile&` +
                 `access_type=offline`;
@@ -86,46 +92,10 @@ export default function Login() {
             console.log("📱 OAuth URL:", oauthUrl);
             
             if (Capacitor.isNativePlatform()) {
-                // For mobile, use Capacitor Browser to open OAuth in-app
-                try {
-                    // Check if Browser is available on window object (Capacitor runtime)
-                    if (typeof window !== 'undefined' && (window as any).Capacitor?.Plugins?.Browser) {
-                        const { Browser } = (window as any).Capacitor.Plugins;
-                        await Browser.open({ 
-                            url: oauthUrl,
-                            windowName: '_self'
-                        });
-                        
-                        // Listen for browser close event
-                        Browser.addListener('browserFinished', () => {
-                            console.log("📱 Browser closed, checking auth status");
-                            
-                            // Check localStorage for user data periodically
-                            const checkAuth = setInterval(() => {
-                                const storedUser = localStorage.getItem('cardscope_user');
-                                console.log("📱 Checking localStorage for user data...");
-                                
-                                if (storedUser) {
-                                    console.log("✅ User data found in localStorage!");
-                                    clearInterval(checkAuth);
-                                    window.location.reload();
-                                }
-                            }, 500);
-                            
-                            // Stop checking after 10 seconds
-                            setTimeout(() => {
-                                clearInterval(checkAuth);
-                                console.log("⏰ Stopped checking for auth data");
-                            }, 10000);
-                        });
-                    } else {
-                        throw new Error("Browser module not available");
-                    }
-                    
-                } catch (browserError) {
-                    console.log("📱 Browser plugin not available, falling back to window.open");
-                    window.open(oauthUrl, '_self');
-                }
+                // For mobile iOS, redirect WebView to OAuth URL
+                // The callback will redirect back to cardscope:// scheme
+                console.log("📱 Navigating WebView to OAuth URL");
+                window.location.href = oauthUrl;
             } else {
                 // For web, redirect directly to OAuth
                 window.location.href = oauthUrl;
