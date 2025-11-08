@@ -59,35 +59,37 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             }}
         >
             {/* Header */}
-            <header className="bg-white shadow-sm px-4 py-3 flex justify-between items-center rounded-t-2xl">
-                {pathname === "/settings" ? (
-                    <Link
-                        href="/"
-                        className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition"
-                        aria-label="Home"
-                    >
-                        🏠
-                    </Link>
-                ) : (
-                    <Link
-                        href="/settings"
-                        className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition"
-                        aria-label="Settings"
-                    >
-                        ⚙️
-                    </Link>
-                )}
+            <header className="bg-white shadow-sm py-3 rounded-t-2xl">
+                <div className="max-w-lg mx-auto w-full px-4 flex justify-between items-center">
+                    {pathname === "/settings" ? (
+                        <Link
+                            href="/"
+                            className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+                            aria-label="Home"
+                        >
+                            🏠
+                        </Link>
+                    ) : (
+                        <Link
+                            href="/settings"
+                            className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+                            aria-label="Settings"
+                        >
+                            ⚙️
+                        </Link>
+                    )}
 
-                <h1 className="text-base sm:text-lg font-semibold text-gray-800">
-                    {getTitle()}
-                </h1>
+                    <h1 className="text-base sm:text-lg font-semibold text-gray-800">
+                        {getTitle()}
+                    </h1>
 
-                <button
-                    onClick={handleSignOut}
-                    className="btn btn-danger px-3 py-1 text-xs sm:text-sm"
-                >
-                    Sign Out
-                </button>
+                    <button
+                        onClick={handleSignOut}
+                        className="btn btn-danger px-3 py-1 text-xs sm:text-sm"
+                    >
+                        Sign Out
+                    </button>
+                </div>
             </header>
 
             {/* Main */}
@@ -97,7 +99,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             {/* Footer */}
             <footer className="bg-white text-center text-xs text-gray-500 border-t py-3 rounded-b-2xl">
-                © {new Date().getFullYear()} CardScope
+                <div className="max-w-lg mx-auto w-full px-4">
+                    © {new Date().getFullYear()} CardCompass
+                </div>
             </footer>
         </div>
     );
