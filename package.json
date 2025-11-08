@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:mobile": "BUILD_FOR_MOBILE=true next build",
+    "build:ios": "npm run build:mobile && npx cap sync ios",
     "start": "next start",
-    "lint": "next lint",
-    "export": "next export"
+    "lint": "next lint"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",

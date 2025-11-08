@@ -1,4 +1,4 @@
-package com.shomuran.cardscope;
+package com.shomuran.cardcompass;
 
 import android.content.Intent;
 import android.net.Uri;

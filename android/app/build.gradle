@@ -1,15 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.shomuran.cardscope" // ✅ Your app namespace
+    namespace "com.shomuran.cardcompass" // ✅ Your app namespace
     compileSdk 35
 
     defaultConfig {
-        applicationId "com.shomuran.cardscope"
+        applicationId "com.shomuran.cardcompass"
         minSdkVersion 23
         targetSdkVersion 35
-        versionCode 20
-        versionName "1.0.20"
+        versionCode 21
+        versionName "1.0.21"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // ✅ Handle web asset packaging properly

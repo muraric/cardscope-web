@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>Credit Card Advisor</string>
+        <string>CardCompass</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -53,8 +53,12 @@
 				<string>cardscope</string>
 			</array>
 			<key>CFBundleURLName</key>
-			<string>com.shomuran.cardscope</string>
+			<string>com.shomuran.cardcompass</string>
 		</dict>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>CardCompass needs your location to detect nearby stores and provide personalized credit card recommendations based on where you shop.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>CardCompass needs your location to detect nearby stores and provide personalized credit card recommendations based on where you shop.</string>
 </dict>
 </plist>

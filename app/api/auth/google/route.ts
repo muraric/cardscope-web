@@ -68,6 +68,39 @@ export async function POST(request: NextRequest) {
       picture: userData.picture,
     };
 
+    // ✅ Create user in backend database (if doesn't exist)
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
+      
+      const userPayload = {
+        name: userData.name,
+        email: userData.email,
+        provider: "google",
+        providerId: userData.id,
+        image: userData.picture || null,
+      };
+
+      console.log("📝 Creating user in backend:", userPayload.email);
+      
+      const createUserResponse = await fetch(`${apiUrl}/api/user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userPayload),
+      });
+
+      if (createUserResponse.ok) {
+        console.log("✅ User created/updated in backend:", userData.email);
+      } else {
+        const errorText = await createUserResponse.text();
+        console.error("⚠️ Failed to create user in backend:", errorText);
+        // Don't fail the OAuth flow if user creation fails
+        // User might already exist or backend might be unavailable
+      }
+    } catch (err) {
+      console.error("⚠️ Error creating user in backend:", err);
+      // Don't fail the OAuth flow if user creation fails
+    }
+
     return NextResponse.json({ user });
 
   } catch (error) {
