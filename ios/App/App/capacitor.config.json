@@ -1,6 +1,6 @@
 {
-	"appId": "com.shomuran.cardscope",
-	"appName": "CardScope",
+	"appId": "com.shomuran.cardcompass",
+	"appName": "CardCompass",
 	"webDir": "dist",
 	"server": {
 		"url": "https://cardscope-web.vercel.app",
