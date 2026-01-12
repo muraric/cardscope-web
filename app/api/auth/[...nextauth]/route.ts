@@ -9,34 +9,45 @@ declare module "next-auth" {
     }
 }
 
-const handler = NextAuth({
-    providers: [
-        GoogleProvider({
-            clientId:
-                process.env.GOOGLE_CLIENT_ID ||
-                process.env.GOOGLE_CLIENT_ID_ANDROID!, // ✅ support both web + Android clients
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-            authorization: {
-                params: {
-                    prompt: "select_account",
-                    access_type: "offline",
-                    response_type: "code",
-                    scope: "openid email profile",
-                },
+// Build providers array conditionally
+const providers: any[] = [
+    GoogleProvider({
+        clientId:
+            process.env.GOOGLE_CLIENT_ID ||
+            process.env.GOOGLE_CLIENT_ID_ANDROID!, // ✅ support both web + Android clients
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        authorization: {
+            params: {
+                prompt: "select_account",
+                access_type: "offline",
+                response_type: "code",
+                scope: "openid email profile",
             },
-            checks: [],
-        }),
+        },
+        checks: [],
+    }),
+];
+
+// Only add Apple provider if configured
+if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
+    providers.push(
         AppleProvider({
-            clientId: process.env.APPLE_ID!,
-            clientSecret: process.env.APPLE_SECRET!,
+            clientId: process.env.APPLE_ID,
+            clientSecret: process.env.APPLE_SECRET,
             authorization: {
                 params: {
                     scope: "name email",
                     response_mode: "form_post",
                 },
             },
-        }),
-    ],
+        })
+    );
+} else {
+    console.warn("⚠️ Apple Sign-In not configured: APPLE_ID and APPLE_SECRET environment variables are required");
+}
+
+const handler = NextAuth({
+    providers,
 
     // ✅ Enable debug logging for troubleshooting
     debug: process.env.NODE_ENV === "development",
