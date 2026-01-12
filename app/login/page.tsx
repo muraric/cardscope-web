@@ -106,6 +106,21 @@ export default function Login() {
         }
     };
 
+    // ✅ Sign in with Apple handler
+    const handleAppleSignIn = async () => {
+        try {
+            console.log("🍎 Starting Apple sign-in...");
+            
+            // Use web-based Apple Sign-In via NextAuth
+            // This works on both web and iOS via WebView
+            // Native iOS Apple Sign-In can be added later by installing @capacitor-community/apple-sign-in
+            window.location.href = '/api/auth/signin/apple';
+        } catch (err) {
+            console.error("❌ Apple sign-in failed:", err);
+            setError("Apple sign-in failed. Please try again.");
+        }
+    };
+
     if (isLoading) {
         console.log("🔄 Auth status: loading");
         return (
@@ -193,6 +208,17 @@ export default function Login() {
                         className="h-5 w-5 mr-2"
                     />
                     Continue with Google
+                </button>
+
+                {/* ✅ Sign in with Apple */}
+                <button
+                    onClick={handleAppleSignIn}
+                    className="flex items-center justify-center w-full bg-black text-white rounded-lg py-2 hover:bg-gray-800 transition"
+                >
+                    <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C4.79 15.25 3.8 10.45 6.05 7.96c1.15-1.23 2.5-1.93 4.05-1.93 1.18 0 2.06.4 3.08.88.78.38 1.48.58 1.98.58.44 0 1.15-.2 1.98-.58 1.02-.48 1.9-.88 3.08-.88 1.58 0 2.93.73 4.08 1.96-3.12 3.53-2.61 8.5 1.08 11.32-1.1 1.01-2.2 1.4-3.18 1.4zm-2.04-17.3c.15 1.15-.34 2.3-1.05 3.04-.73.76-1.9 1.25-3.04 1.15-.15-1.15.35-2.3 1.06-3.04.74-.76 1.91-1.24 3.03-1.15z"/>
+                    </svg>
+                    Continue with Apple
                 </button>
 
                 <div className="text-center mt-4">

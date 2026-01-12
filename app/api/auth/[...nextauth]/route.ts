@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import AppleProvider from "next-auth/providers/apple";
 
 /** ✅ Extend NextAuth types to safely include optional picture field */
 declare module "next-auth" {
@@ -24,6 +25,16 @@ const handler = NextAuth({
                 },
             },
             checks: [],
+        }),
+        AppleProvider({
+            clientId: process.env.APPLE_ID!,
+            clientSecret: process.env.APPLE_SECRET!,
+            authorization: {
+                params: {
+                    scope: "name email",
+                    response_mode: "form_post",
+                },
+            },
         }),
     ],
 
@@ -76,15 +87,16 @@ const handler = NextAuth({
             return baseUrl;
         },
 
-        /** ✅ When user signs in via Google */
+        /** ✅ When user signs in via Google or Apple */
         async signIn({ user, account, profile }) {
             try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
+                const provider = account?.provider || "google";
 
                 const payload = {
                     name: user.name,
                     email: user.email,
-                    provider: "google",
+                    provider: provider,
                     providerId: account?.providerAccountId,
                     image: user.image || (profile as any)?.picture || null,
                 };
@@ -96,7 +108,7 @@ const handler = NextAuth({
                 });
 
                 if (res.ok) {
-                    console.log("✅ Google user accepted by backend:", user.email);
+                    console.log(`✅ ${provider} user accepted by backend:`, user.email);
                     return true;
                 }
 

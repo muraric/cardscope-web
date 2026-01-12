@@ -167,6 +167,38 @@ export default function Settings() {
         setExpandedCard(expandedCard === key ? null : key);
     };
 
+    const handleDeleteAccount = async () => {
+        if (!email || !user) return;
+        
+        // Confirm deletion
+        const confirmed = window.confirm(
+            'Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.'
+        );
+        
+        if (!confirmed) return;
+
+        setLoading(true);
+        try {
+            // Call backend API to delete account
+            await api.delete(`/api/user/${encodeURIComponent(email)}`);
+            
+            // Clear local storage
+            localStorage.removeItem('cardscope_user');
+            localStorage.removeItem('auth');
+            
+            // Sign out user
+            window.dispatchEvent(new Event('authUpdated'));
+            
+            // Redirect to login
+            router.replace('/login');
+        } catch (err: any) {
+            console.error("❌ Failed to delete account:", err);
+            alert(err.response?.data?.error || "Failed to delete account. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (isLoading || (!email && !user)) {
         return (
             <div className="min-h-screen flex items-center justify-center text-gray-500">
@@ -398,6 +430,21 @@ export default function Settings() {
 
                             <button onClick={saveProfile} className="btn btn-success w-full mt-4">
                                 Save Cards
+                            </button>
+                        </div>
+
+                        {/* Account Deletion Section */}
+                        <div className="bg-white shadow rounded-lg p-4 sm:p-6 border-t-4 border-red-500">
+                            <h2 className="text-red-600 mb-4">⚠️ Danger Zone</h2>
+                            <p className="text-sm text-gray-600 mb-4">
+                                Once you delete your account, there is no going back. Please be certain.
+                            </p>
+                            <button 
+                                onClick={handleDeleteAccount}
+                                className="btn btn-danger w-full"
+                                disabled={loading}
+                            >
+                                {loading ? 'Deleting...' : 'Delete My Account'}
                             </button>
                         </div>
                     </>
