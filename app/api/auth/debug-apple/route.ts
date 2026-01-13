@@ -27,7 +27,9 @@ export async function GET() {
 
   // Try to initialize Apple provider to see what error we get
   try {
-    const { AppleProvider } = await import('next-auth/providers/apple');
+    const AppleProviderModule = await import('next-auth/providers/apple');
+    const AppleProvider = AppleProviderModule.default || AppleProviderModule;
+    
     if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
       try {
         AppleProvider({
