@@ -79,11 +79,22 @@ const handler = NextAuth({
         /** ✅ Custom OAuth callback to handle mobile in-app browser */
         async redirect({ url, baseUrl }) {
             console.log("🔍 Redirect callback - URL:", url, "BaseURL:", baseUrl);
+            console.log("🔍 Redirect callback - Full context:", { url, baseUrl, urlType: typeof url });
+            
+            // CRITICAL: Don't intercept OAuth provider redirects - let NextAuth handle them
+            // The redirect callback should NOT be called when redirecting TO Apple
+            // It should only be called AFTER authentication completes
             
             // Allow Apple OAuth redirects to pass through (don't intercept)
             if (url.includes("appleid.apple.com") || url.startsWith("https://appleid.apple.com")) {
                 console.log("🍎 Apple OAuth redirect detected, allowing through:", url);
                 return url;
+            }
+            
+            // If URL is the same as baseUrl during signin, this might be an error
+            // Log it but don't change behavior - NextAuth should handle OAuth redirects
+            if (url === baseUrl && url.includes("signin")) {
+                console.warn("⚠️ Redirect callback called with baseUrl during signin - this might indicate an issue");
             }
             
             // Handle OAuth callback URLs - redirect back to app
@@ -137,6 +148,13 @@ const handler = NextAuth({
 
         /** ✅ When user signs in via Google or Apple */
         async signIn({ user, account, profile }) {
+            console.log("🔍 signIn callback called:", { 
+                provider: account?.provider, 
+                hasUser: !!user, 
+                hasAccount: !!account,
+                accountType: account?.type 
+            });
+            
             try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
                 const provider = account?.provider || "google";
