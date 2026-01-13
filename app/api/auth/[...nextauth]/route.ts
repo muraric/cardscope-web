@@ -58,6 +58,11 @@ const handler = NextAuth({
     // ✅ Enable debug logging for troubleshooting (enable in production to debug Apple Sign-In)
     debug: true, // Temporarily enabled to debug Apple Sign-In issues
 
+    // ✅ Set base URL for NextAuth (required for OAuth redirects)
+    // NextAuth will use NEXTAUTH_URL or infer from request
+    // For Vercel, it should auto-detect, but we can be explicit
+    basePath: "/api/auth",
+
     // ✅ Add secret for proper session handling
     secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
 
