@@ -111,6 +111,16 @@ export default function Login() {
         try {
             console.log("🍎 Starting Apple sign-in...");
             
+            // Check if Apple Sign-In is configured
+            const response = await fetch('/api/auth/providers');
+            const providers = await response.json();
+            
+            if (!providers.apple) {
+                setError("Apple Sign-In is not configured. Please contact support or use another login method.");
+                console.error("❌ Apple provider not available");
+                return;
+            }
+            
             // Use web-based Apple Sign-In via NextAuth
             // This works on both web and iOS via WebView
             // Native iOS Apple Sign-In can be added later by installing @capacitor-community/apple-sign-in
@@ -120,6 +130,15 @@ export default function Login() {
             setError("Apple sign-in failed. Please try again.");
         }
     };
+    
+    // Check for error in URL params
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const errorParam = params.get('error');
+        if (errorParam === 'apple') {
+            setError("Apple Sign-In is not configured. Please add environment variables to Vercel or use another login method.");
+        }
+    }, []);
 
     if (isLoading) {
         console.log("🔄 Auth status: loading");

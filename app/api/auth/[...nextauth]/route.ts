@@ -76,7 +76,13 @@ const handler = NextAuth({
             
             // Handle OAuth callback URLs - redirect back to app
             if (url.includes("/api/auth/callback/google")) {
-                console.log("🔄 OAuth callback detected, redirecting to app");
+                console.log("🔄 Google OAuth callback detected, redirecting to app");
+                return `${baseUrl}/`;
+            }
+            
+            // Handle Apple OAuth callback URLs
+            if (url.includes("/api/auth/callback/apple")) {
+                console.log("🍎 Apple OAuth callback detected, redirecting to app");
                 return `${baseUrl}/`;
             }
             
@@ -90,6 +96,13 @@ const handler = NextAuth({
             if (url.includes("/mobile-auth-success")) {
                 console.log("📱 Mobile auth success redirect");
                 return `${baseUrl}/mobile-auth-success`;
+            }
+            
+            // Handle error redirects
+            if (url.includes("error=")) {
+                console.log("⚠️ Error in redirect URL:", url);
+                // Still redirect to login but preserve error for display
+                return `${baseUrl}/login?${url.split('?')[1] || ''}`;
             }
             
             // Handle other redirects
