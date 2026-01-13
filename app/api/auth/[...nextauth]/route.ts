@@ -80,6 +80,12 @@ const handler = NextAuth({
         async redirect({ url, baseUrl }) {
             console.log("🔍 Redirect callback - URL:", url, "BaseURL:", baseUrl);
             
+            // Allow Apple OAuth redirects to pass through (don't intercept)
+            if (url.includes("appleid.apple.com") || url.startsWith("https://appleid.apple.com")) {
+                console.log("🍎 Apple OAuth redirect detected, allowing through:", url);
+                return url;
+            }
+            
             // Handle OAuth callback URLs - redirect back to app
             if (url.includes("/api/auth/callback/google")) {
                 console.log("🔄 Google OAuth callback detected, redirecting to app");
@@ -114,6 +120,18 @@ const handler = NextAuth({
             // Handle other redirects
             if (url.startsWith("/")) return `${baseUrl}${url}`;
             else if (new URL(url).origin === baseUrl) return url;
+            
+            // If URL is external (like Apple OAuth), allow it through
+            try {
+                const urlObj = new URL(url);
+                if (urlObj.origin !== baseUrl) {
+                    console.log("🌐 External redirect detected, allowing through:", url);
+                    return url;
+                }
+            } catch (e) {
+                // Invalid URL, fall back to baseUrl
+            }
+            
             return baseUrl;
         },
 
