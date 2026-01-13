@@ -76,6 +76,19 @@ const handler = NextAuth({
 
     // ✅ Use default cookie behavior but with custom settings
     useSecureCookies: process.env.NODE_ENV === 'production',
+    
+    // ✅ Configure cookies explicitly for Apple Sign-In compatibility
+    cookies: {
+        callbackUrl: {
+            name: `__Secure-next-auth.callback-url`,
+            options: {
+                httpOnly: false,
+                sameSite: "none",
+                path: "/",
+                secure: true,
+            },
+        },
+    },
 
     session: {
         strategy: "jwt", // ✅ stateless sessions for Next.js
