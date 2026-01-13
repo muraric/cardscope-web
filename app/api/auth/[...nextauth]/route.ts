@@ -218,6 +218,41 @@ const handler = NextAuth({
         signIn: "/login",
         error: "/login",
     },
+    
+    /** ✅ Events for debugging */
+    events: {
+        async signIn(message) {
+            console.log("🔍 signIn event:", message);
+        },
+        async signOut(message) {
+            console.log("🔍 signOut event:", message);
+        },
+        async createUser(message) {
+            console.log("🔍 createUser event:", message);
+        },
+        async updateUser(message) {
+            console.log("🔍 updateUser event:", message);
+        },
+        async linkAccount(message) {
+            console.log("🔍 linkAccount event:", message);
+        },
+        async session(message) {
+            console.log("🔍 session event:", message);
+        },
+    },
+    
+    /** ✅ Logger for detailed error tracking */
+    logger: {
+        error(code, metadata) {
+            console.error("❌ NextAuth Error:", code, metadata);
+        },
+        warn(code) {
+            console.warn("⚠️ NextAuth Warning:", code);
+        },
+        debug(code, metadata) {
+            console.log("🔍 NextAuth Debug:", code, metadata);
+        },
+    },
 });
 
 export { handler as GET, handler as POST };
