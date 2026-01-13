@@ -30,18 +30,24 @@ const providers: any[] = [
 
 // Only add Apple provider if configured
 if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
-    providers.push(
-        AppleProvider({
-            clientId: process.env.APPLE_ID,
-            clientSecret: process.env.APPLE_SECRET,
-            authorization: {
-                params: {
-                    scope: "name email",
-                    response_mode: "form_post",
+    try {
+        providers.push(
+            AppleProvider({
+                clientId: process.env.APPLE_ID,
+                clientSecret: process.env.APPLE_SECRET,
+                authorization: {
+                    params: {
+                        scope: "name email",
+                        response_mode: "form_post",
+                    },
                 },
-            },
-        })
-    );
+            })
+        );
+        console.log("✅ Apple provider initialized successfully");
+    } catch (error: any) {
+        console.error("❌ Failed to initialize Apple provider:", error.message);
+        console.error("Error details:", error);
+    }
 } else {
     console.warn("⚠️ Apple Sign-In not configured: APPLE_ID and APPLE_SECRET environment variables are required");
 }
@@ -49,8 +55,8 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
 const handler = NextAuth({
     providers,
 
-    // ✅ Enable debug logging for troubleshooting
-    debug: process.env.NODE_ENV === "development",
+    // ✅ Enable debug logging for troubleshooting (enable in production to debug Apple Sign-In)
+    debug: true, // Temporarily enabled to debug Apple Sign-In issues
 
     // ✅ Add secret for proper session handling
     secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
