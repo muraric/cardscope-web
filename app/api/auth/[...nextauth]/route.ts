@@ -31,29 +31,35 @@ const providers: any[] = [
 // Only add Apple provider if configured
 if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
     try {
-        providers.push(
-            AppleProvider({
-                clientId: process.env.APPLE_ID,
-                clientSecret: process.env.APPLE_SECRET,
-                authorization: {
-                    params: {
-                        scope: "name email",
-                        // Apple requires form_post when requesting user info scopes
-                        response_mode: "form_post",
-                        response_type: "code id_token",
-                    },
-                },
-            })
-        );
-        console.log("✅ Apple provider initialized successfully");
-        console.log("✅ Apple provider config:", {
+        const appleConfig = {
             clientId: process.env.APPLE_ID,
-            hasSecret: !!process.env.APPLE_SECRET,
+            clientSecret: process.env.APPLE_SECRET,
+            authorization: {
+                params: {
+                    scope: "name email",
+                    // Apple requires form_post when requesting user info scopes
+                    response_mode: "form_post",
+                    response_type: "code id_token",
+                },
+            },
+        };
+        
+        console.log("🔍 Creating Apple provider with config:", {
+            clientId: appleConfig.clientId,
+            hasSecret: !!appleConfig.clientSecret,
             nextAuthUrl: process.env.NEXTAUTH_URL,
+            callbackUrl: process.env.NEXTAUTH_URL ? `${process.env.NEXTAUTH_URL}/api/auth/callback/apple` : 'not set',
         });
+        
+        const appleProvider = AppleProvider(appleConfig);
+        providers.push(appleProvider);
+        
+        console.log("✅ Apple provider initialized successfully");
+        console.log("✅ Apple provider ID:", appleProvider.id);
     } catch (error: any) {
         console.error("❌ Failed to initialize Apple provider:", error.message);
         console.error("Error details:", error);
+        console.error("Error stack:", error.stack);
     }
 } else {
     console.warn("⚠️ Apple Sign-In not configured: APPLE_ID and APPLE_SECRET environment variables are required");
