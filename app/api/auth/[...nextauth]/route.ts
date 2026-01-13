@@ -38,9 +38,9 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
                 authorization: {
                     params: {
                         scope: "name email",
-                        // Use query instead of form_post for better compatibility
-                        // form_post requires special handling and might cause redirect issues
-                        response_mode: "query",
+                        // Apple requires form_post when requesting user info scopes
+                        response_mode: "form_post",
+                        response_type: "code id_token",
                     },
                 },
             })
@@ -86,21 +86,27 @@ const handler = NextAuth({
         /** ✅ Custom OAuth callback to handle mobile in-app browser */
         async redirect({ url, baseUrl }) {
             console.log("🔍 Redirect callback - URL:", url, "BaseURL:", baseUrl);
-            console.log("🔍 Redirect callback - Full context:", { url, baseUrl, urlType: typeof url });
             
-            // CRITICAL: If URL is just the baseUrl during signin, NextAuth might not have generated the OAuth URL
-            // This could indicate a configuration issue. Return the URL as-is to avoid breaking the flow.
-            if (url === baseUrl) {
-                console.warn("⚠️ Redirect callback received baseUrl - NextAuth may not have generated OAuth URL");
-                console.warn("⚠️ This might indicate missing NEXTAUTH_URL or Apple provider configuration issue");
-                // Return baseUrl to avoid infinite redirect, but log the issue
-                return baseUrl;
-            }
+            // NOTE: Redirect callback is called MULTIPLE times:
+            // 1. During initial signin (before OAuth URL generated) - url might be baseUrl
+            // 2. After OAuth callback - url will be the callback URL or intended destination
+            // NextAuth handles OAuth URL generation internally, so we shouldn't interfere
             
             // Allow Apple OAuth redirects to pass through (don't intercept)
             if (url.includes("appleid.apple.com") || url.startsWith("https://appleid.apple.com")) {
                 console.log("🍎 Apple OAuth redirect detected, allowing through:", url);
                 return url;
+            }
+            
+            // If URL is external (like OAuth providers), allow it through
+            try {
+                const urlObj = new URL(url);
+                if (urlObj.origin !== baseUrl && urlObj.origin !== new URL(baseUrl).origin) {
+                    console.log("🌐 External redirect detected, allowing through:", url);
+                    return url;
+                }
+            } catch (e) {
+                // Invalid URL, continue with normal handling
             }
             
             // Handle OAuth callback URLs - redirect back to app
@@ -138,17 +144,7 @@ const handler = NextAuth({
             if (url.startsWith("/")) return `${baseUrl}${url}`;
             else if (new URL(url).origin === baseUrl) return url;
             
-            // If URL is external (like Apple OAuth), allow it through
-            try {
-                const urlObj = new URL(url);
-                if (urlObj.origin !== baseUrl) {
-                    console.log("🌐 External redirect detected, allowing through:", url);
-                    return url;
-                }
-            } catch (e) {
-                // Invalid URL, fall back to baseUrl
-            }
-            
+            // Default: return baseUrl (NextAuth will handle OAuth redirects internally)
             return baseUrl;
         },
 
