@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+
+// Dynamic import to handle cases where jsonwebtoken might not be available
+let jwt: any;
+try {
+  jwt = require('jsonwebtoken');
+} catch (e) {
+  // jsonwebtoken not available
+}
 
 export async function GET() {
   const results: any = {
@@ -23,8 +30,14 @@ export async function GET() {
 
   // Check 2: Validate JWT Token Format
   if (process.env.APPLE_SECRET) {
-    try {
-      const decoded = jwt.decode(process.env.APPLE_SECRET, { complete: true });
+    if (!jwt) {
+      results.checks.jwtToken = {
+        valid: false,
+        error: 'jsonwebtoken module not available',
+      };
+    } else {
+      try {
+        const decoded = jwt.decode(process.env.APPLE_SECRET, { complete: true });
       
       if (decoded && typeof decoded === 'object' && 'header' in decoded && 'payload' in decoded) {
         const header = decoded.header as any;
@@ -49,17 +62,18 @@ export async function GET() {
           payload.iss === process.env.APPLE_TEAM_ID &&
           payload.aud === 'https://appleid.apple.com' &&
           payload.sub === process.env.APPLE_ID;
-      } else {
+        } else {
+          results.checks.jwtToken = {
+            valid: false,
+            error: 'Invalid JWT structure',
+          };
+        }
+      } catch (error: any) {
         results.checks.jwtToken = {
           valid: false,
-          error: 'Invalid JWT structure',
+          error: error.message,
         };
       }
-    } catch (error: any) {
-      results.checks.jwtToken = {
-        valid: false,
-        error: error.message,
-      };
     }
   } else {
     results.checks.jwtToken = {
