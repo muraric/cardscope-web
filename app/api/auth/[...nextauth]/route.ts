@@ -38,12 +38,19 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
                 authorization: {
                     params: {
                         scope: "name email",
-                        response_mode: "form_post",
+                        // Use query instead of form_post for better compatibility
+                        // form_post requires special handling and might cause redirect issues
+                        response_mode: "query",
                     },
                 },
             })
         );
         console.log("✅ Apple provider initialized successfully");
+        console.log("✅ Apple provider config:", {
+            clientId: process.env.APPLE_ID,
+            hasSecret: !!process.env.APPLE_SECRET,
+            nextAuthUrl: process.env.NEXTAUTH_URL,
+        });
     } catch (error: any) {
         console.error("❌ Failed to initialize Apple provider:", error.message);
         console.error("Error details:", error);
