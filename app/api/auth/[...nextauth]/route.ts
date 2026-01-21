@@ -36,12 +36,18 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
             clientSecret: process.env.APPLE_SECRET,
             authorization: {
                 params: {
-                    scope: "name email",
+                    // CRITICAL: Must include 'openid' scope for id_token to be present
+                    scope: "openid name email",
                     // Apple requires form_post when requesting user info scopes
                     response_mode: "form_post",
+                    // Request both code and id_token
                     response_type: "code id_token",
                 },
             },
+            // Ensure NextAuth uses id_token if present
+            idToken: true,
+            // Enable PKCE and state checks for security
+            checks: ["pkce", "state"],
         };
         
         console.log("🔍 Creating Apple provider with config:", {
@@ -49,6 +55,7 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
             hasSecret: !!appleConfig.clientSecret,
             nextAuthUrl: process.env.NEXTAUTH_URL,
             callbackUrl: process.env.NEXTAUTH_URL ? `${process.env.NEXTAUTH_URL}/api/auth/callback/apple` : 'not set',
+            scope: appleConfig.authorization.params.scope,
         });
         
         const appleProvider = AppleProvider(appleConfig);
@@ -78,6 +85,7 @@ const handler = NextAuth({
     useSecureCookies: process.env.NODE_ENV === 'production',
     
     // ✅ Configure cookies explicitly for Apple Sign-In compatibility
+    // Apple Sign-In requires proper cookie configuration for PKCE and state
     cookies: {
         callbackUrl: {
             name: `__Secure-next-auth.callback-url`,
@@ -85,10 +93,40 @@ const handler = NextAuth({
                 httpOnly: false,
                 sameSite: "none",
                 path: "/",
-                secure: true,
+                secure: process.env.NODE_ENV === 'production',
+            },
+        },
+        csrfToken: {
+            name: `__Secure-next-auth.csrf-token`,
+            options: {
+                httpOnly: true,
+                sameSite: "none",
+                path: "/",
+                secure: process.env.NODE_ENV === 'production',
+            },
+        },
+        pkceCodeVerifier: {
+            name: `__Secure-next-auth.pkce.code_verifier`,
+            options: {
+                httpOnly: true,
+                sameSite: "none",
+                path: "/",
+                secure: process.env.NODE_ENV === 'production',
+            },
+        },
+        state: {
+            name: `__Secure-next-auth.state`,
+            options: {
+                httpOnly: true,
+                sameSite: "none",
+                path: "/",
+                secure: process.env.NODE_ENV === 'production',
             },
         },
     },
+    
+    // ✅ Trust host for proper redirect handling (important for Vercel)
+    trustHost: true,
 
     session: {
         strategy: "jwt", // ✅ stateless sessions for Next.js
