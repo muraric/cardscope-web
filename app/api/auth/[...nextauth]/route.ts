@@ -47,7 +47,7 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
             // Ensure NextAuth uses id_token if present
             idToken: true,
             // Enable PKCE and state checks for security
-            checks: ["pkce", "state"] as any,
+            // checks: ["pkce", "state"], // relying on defaults
         };
 
         console.log("🔍 Creating Apple provider with config:", {
