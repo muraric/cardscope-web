@@ -1,0 +1,1 @@
+{"baseUrl":"https://cardscope-web.vercel.app","callbackUrl":"https://cardscope-web.vercel.app/api/auth/callback/apple","appleProvider":null,"environment":{"hasAppleId":false,"hasAppleSecret":false,"hasNextAuthUrl":true,"nextAuthUrl":"https://cardscope-web.vercel.app"},"message":"This endpoint tests if Apple provider can be created and configured"}

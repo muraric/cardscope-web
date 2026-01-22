@@ -1,0 +1,240 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.shomuran.cardcompass"
+4    android:versionCode="3"
+5    android:versionName="1.0.2" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="23"
+9        android:targetSdkVersion="35" />
+10
+11    <!-- 🌐 Required permissions -->
+12    <uses-permission android:name="android.permission.INTERNET" />
+12-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:6:5-67
+12-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:6:22-64
+13    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+13-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:7:5-81
+13-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:7:22-78
+14    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+14-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:8:5-79
+14-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:8:22-76
+15
+16    <uses-feature android:name="android.hardware.location.gps" />
+16-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:9:5-66
+16-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:9:19-63
+17
+18    <!-- ✅ Optional but recommended for improved location accuracy -->
+19    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+19-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:12:5-79
+19-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:12:22-76
+20    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+20-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:13:5-76
+20-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:13:22-73
+21
+22    <permission
+22-->[androidx.core:core:1.15.0] /Users/murari/.gradle/caches/8.13/transforms/95cc373b87a1ee39a0abb5866bf7fde9/transformed/core-1.15.0/AndroidManifest.xml:22:5-24:47
+23        android:name="com.shomuran.cardcompass.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+23-->[androidx.core:core:1.15.0] /Users/murari/.gradle/caches/8.13/transforms/95cc373b87a1ee39a0abb5866bf7fde9/transformed/core-1.15.0/AndroidManifest.xml:23:9-81
+24        android:protectionLevel="signature" />
+24-->[androidx.core:core:1.15.0] /Users/murari/.gradle/caches/8.13/transforms/95cc373b87a1ee39a0abb5866bf7fde9/transformed/core-1.15.0/AndroidManifest.xml:24:9-44
+25
+26    <uses-permission android:name="com.shomuran.cardcompass.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+26-->[androidx.core:core:1.15.0] /Users/murari/.gradle/caches/8.13/transforms/95cc373b87a1ee39a0abb5866bf7fde9/transformed/core-1.15.0/AndroidManifest.xml:26:5-97
+26-->[androidx.core:core:1.15.0] /Users/murari/.gradle/caches/8.13/transforms/95cc373b87a1ee39a0abb5866bf7fde9/transformed/core-1.15.0/AndroidManifest.xml:26:22-94
+27
+28    <application
+28-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:15:5-72:19
+29        android:allowBackup="true"
+29-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:16:13-39
+30        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+30-->[androidx.core:core:1.15.0] /Users/murari/.gradle/caches/8.13/transforms/95cc373b87a1ee39a0abb5866bf7fde9/transformed/core-1.15.0/AndroidManifest.xml:28:18-86
+31        android:extractNativeLibs="false"
+32        android:icon="@mipmap/ic_launcher"
+32-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:17:13-47
+33        android:label="@string/app_name"
+33-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:18:13-45
+34        android:roundIcon="@mipmap/ic_launcher_round"
+34-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:19:13-58
+35        android:supportsRtl="true"
+35-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:20:13-39
+36        android:theme="@style/AppTheme.NoActionBar"
+36-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:21:13-56
+37        android:usesCleartextTraffic="true" >
+37-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:22:13-48
+38
+39        <!-- ✅ Main Activity -->
+40        <activity
+40-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:26:9-59:20
+41            android:name="com.shomuran.cardcompass.MainActivity"
+41-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:27:17-45
+42            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation"
+42-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:32:17-144
+43            android:exported="true"
+43-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:28:17-40
+44            android:label="@string/title_activity_main"
+44-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:30:17-60
+45            android:launchMode="singleTask"
+45-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:29:17-48
+46            android:theme="@style/AppTheme.NoActionBarLaunch" >
+46-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:31:17-66
+47
+48            <!-- Launcher intent -->
+49            <intent-filter>
+49-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:35:13-38:29
+50                <action android:name="android.intent.action.MAIN" />
+50-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:36:17-69
+50-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:36:25-66
+51
+52                <category android:name="android.intent.category.LAUNCHER" />
+52-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:37:17-77
+52-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:37:27-74
+53            </intent-filter>
+54
+55            <!-- ✅ Deep link intent for OAuth callback redirect -->
+56            <intent-filter android:autoVerify="true" >
+56-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:41:13-46:29
+56-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:41:28-53
+57                <action android:name="android.intent.action.VIEW" />
+57-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:42:17-69
+57-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:42:25-66
+58
+59                <category android:name="android.intent.category.DEFAULT" />
+59-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:43:17-76
+59-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:43:27-73
+60                <category android:name="android.intent.category.BROWSABLE" />
+60-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:44:17-78
+60-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:44:27-75
+61
+62                <data android:scheme="cardscope" />
+62-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:45:17-52
+62-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:45:23-49
+63            </intent-filter>
+64
+65            <!-- ✅ App Links for HTTPS OAuth redirect -->
+66            <intent-filter android:autoVerify="true" >
+66-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:49:13-57:29
+66-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:49:28-53
+67                <action android:name="android.intent.action.VIEW" />
+67-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:42:17-69
+67-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:42:25-66
+68
+69                <category android:name="android.intent.category.DEFAULT" />
+69-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:43:17-76
+69-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:43:27-73
+70                <category android:name="android.intent.category.BROWSABLE" />
+70-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:44:17-78
+70-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:44:27-75
+71
+72                <data
+72-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:45:17-52
+73                    android:host="cardscope-web.vercel.app"
+73-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:55:25-64
+74                    android:pathPrefix="/auth/callback"
+74-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:56:25-60
+75                    android:scheme="https" />
+75-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:45:23-49
+76            </intent-filter>
+77        </activity>
+78
+79        <!-- ✅ FileProvider (for file sharing / saving) -->
+80        <provider
+81            android:name="androidx.core.content.FileProvider"
+81-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:63:17-66
+82            android:authorities="com.shomuran.cardcompass.fileprovider"
+82-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:64:17-68
+83            android:exported="false"
+83-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:65:17-41
+84            android:grantUriPermissions="true" >
+84-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:66:17-51
+85            <meta-data
+85-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:67:13-69:58
+86                android:name="android.support.FILE_PROVIDER_PATHS"
+86-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:68:21-71
+87                android:resource="@xml/file_paths" />
+87-->/Users/murari/WebstormProjects/cardscope-web/android/app/src/main/AndroidManifest.xml:69:21-55
+88        </provider>
+89
+90        <activity
+90-->[com.google.android.gms:play-services-base:18.5.0] /Users/murari/.gradle/caches/8.13/transforms/c281638970927028aabd1c598a748a4d/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:9-173
+91            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+91-->[com.google.android.gms:play-services-base:18.5.0] /Users/murari/.gradle/caches/8.13/transforms/c281638970927028aabd1c598a748a4d/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:19-85
+92            android:exported="false"
+92-->[com.google.android.gms:play-services-base:18.5.0] /Users/murari/.gradle/caches/8.13/transforms/c281638970927028aabd1c598a748a4d/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:146-170
+93            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+93-->[com.google.android.gms:play-services-base:18.5.0] /Users/murari/.gradle/caches/8.13/transforms/c281638970927028aabd1c598a748a4d/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:86-145
+94
+95        <provider
+95-->[androidx.emoji2:emoji2:1.3.0] /Users/murari/.gradle/caches/8.13/transforms/7b639ef621d220a2f18e740067fc7394/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+96            android:name="androidx.startup.InitializationProvider"
+96-->[androidx.emoji2:emoji2:1.3.0] /Users/murari/.gradle/caches/8.13/transforms/7b639ef621d220a2f18e740067fc7394/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+97            android:authorities="com.shomuran.cardcompass.androidx-startup"
+97-->[androidx.emoji2:emoji2:1.3.0] /Users/murari/.gradle/caches/8.13/transforms/7b639ef621d220a2f18e740067fc7394/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+98            android:exported="false" >
+98-->[androidx.emoji2:emoji2:1.3.0] /Users/murari/.gradle/caches/8.13/transforms/7b639ef621d220a2f18e740067fc7394/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+99            <meta-data
+99-->[androidx.emoji2:emoji2:1.3.0] /Users/murari/.gradle/caches/8.13/transforms/7b639ef621d220a2f18e740067fc7394/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+100                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+100-->[androidx.emoji2:emoji2:1.3.0] /Users/murari/.gradle/caches/8.13/transforms/7b639ef621d220a2f18e740067fc7394/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+101                android:value="androidx.startup" />
+101-->[androidx.emoji2:emoji2:1.3.0] /Users/murari/.gradle/caches/8.13/transforms/7b639ef621d220a2f18e740067fc7394/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+102            <meta-data
+102-->[androidx.lifecycle:lifecycle-process:2.6.2] /Users/murari/.gradle/caches/8.13/transforms/8f1b5985068cb4f2a945bd0976c62d0b/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:29:13-31:52
+103                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+103-->[androidx.lifecycle:lifecycle-process:2.6.2] /Users/murari/.gradle/caches/8.13/transforms/8f1b5985068cb4f2a945bd0976c62d0b/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:30:17-78
+104                android:value="androidx.startup" />
+104-->[androidx.lifecycle:lifecycle-process:2.6.2] /Users/murari/.gradle/caches/8.13/transforms/8f1b5985068cb4f2a945bd0976c62d0b/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:31:17-49
+105            <meta-data
+105-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+106                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+106-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+107                android:value="androidx.startup" />
+107-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+108        </provider>
+109
+110        <meta-data
+110-->[com.google.android.gms:play-services-basement:18.4.0] /Users/murari/.gradle/caches/8.13/transforms/de295c7271935c58217b17a443a582c4/transformed/play-services-basement-18.4.0/AndroidManifest.xml:6:9-122
+111            android:name="com.google.android.gms.version"
+111-->[com.google.android.gms:play-services-basement:18.4.0] /Users/murari/.gradle/caches/8.13/transforms/de295c7271935c58217b17a443a582c4/transformed/play-services-basement-18.4.0/AndroidManifest.xml:6:20-65
+112            android:value="@integer/google_play_services_version" />
+112-->[com.google.android.gms:play-services-basement:18.4.0] /Users/murari/.gradle/caches/8.13/transforms/de295c7271935c58217b17a443a582c4/transformed/play-services-basement-18.4.0/AndroidManifest.xml:6:66-119
+113
+114        <receiver
+114-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+115            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+115-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+116            android:directBootAware="false"
+116-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+117            android:enabled="true"
+117-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+118            android:exported="true"
+118-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+119            android:permission="android.permission.DUMP" >
+119-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+120            <intent-filter>
+120-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+121                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+121-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+121-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+122            </intent-filter>
+123            <intent-filter>
+123-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+124                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+124-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+124-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+125            </intent-filter>
+126            <intent-filter>
+126-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+127                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+127-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+127-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+128            </intent-filter>
+129            <intent-filter>
+129-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+130                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+130-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+130-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/murari/.gradle/caches/8.13/transforms/984433868e42c8b27c083dc16e869d96/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+131            </intent-filter>
+132        </receiver>
+133    </application>
+134
+135</manifest>

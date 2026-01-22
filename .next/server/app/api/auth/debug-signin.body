@@ -1,0 +1,1 @@
+{"environment":{"hasAppleId":false,"hasAppleSecret":false,"hasNextAuthUrl":true,"nextAuthUrl":"https://cardscope-web.vercel.app","baseUrl":"https://cardscope-web.vercel.app","callbackUrl":"https://cardscope-web.vercel.app/api/auth/callback/apple"},"appleProvider":{"created":false,"error":null},"message":"Check the environment variables and Apple provider configuration"}

@@ -384,6 +384,14 @@ export default function Suggestions() {
                         placeholder="Enter store name (e.g. Walmart, Patel Brothers)"
                         value={storeInput}
                         onChange={(e) => setStoreInput(e.target.value)}
+                        onFocus={(e) => {
+                            // Prevent viewport resize issues on iOS
+                            if (typeof window !== 'undefined' && window.visualViewport) {
+                                setTimeout(() => {
+                                    e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }, 100);
+                            }
+                        }}
                     />
                     <button
                         onClick={() => handleSubmit(storeInput, "general")}

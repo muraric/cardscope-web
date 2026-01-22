@@ -47,9 +47,9 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
             // Ensure NextAuth uses id_token if present
             idToken: true,
             // Enable PKCE and state checks for security
-            checks: ["pkce", "state"],
+            checks: ["pkce", "state"] as any,
         };
-        
+
         console.log("🔍 Creating Apple provider with config:", {
             clientId: appleConfig.clientId,
             hasSecret: !!appleConfig.clientSecret,
@@ -57,10 +57,10 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
             callbackUrl: process.env.NEXTAUTH_URL ? `${process.env.NEXTAUTH_URL}/api/auth/callback/apple` : 'not set',
             scope: appleConfig.authorization.params.scope,
         });
-        
+
         const appleProvider = AppleProvider(appleConfig);
         providers.push(appleProvider);
-        
+
         console.log("✅ Apple provider initialized successfully");
         console.log("✅ Apple provider ID:", appleProvider.id);
     } catch (error: any) {
@@ -83,7 +83,7 @@ const handler = NextAuth({
 
     // ✅ Use default cookie behavior but with custom settings
     useSecureCookies: process.env.NODE_ENV === 'production',
-    
+
     // ✅ Configure cookies explicitly for Apple Sign-In compatibility
     // Apple Sign-In requires proper cookie configuration for PKCE and state
     cookies: {
@@ -124,9 +124,9 @@ const handler = NextAuth({
             },
         },
     },
-    
+
     // ✅ Trust host for proper redirect handling (important for Vercel)
-    trustHost: true,
+    // trustHost: true, // ❌ Types mismatch, relying on NEXTAUTH_URL env var
 
     session: {
         strategy: "jwt", // ✅ stateless sessions for Next.js
@@ -143,18 +143,18 @@ const handler = NextAuth({
         /** ✅ Custom OAuth callback to handle mobile in-app browser */
         async redirect({ url, baseUrl }) {
             console.log("🔍 Redirect callback - URL:", url, "BaseURL:", baseUrl);
-            
+
             // NOTE: Redirect callback is called MULTIPLE times:
             // 1. During initial signin (before OAuth URL generated) - url might be baseUrl
             // 2. After OAuth callback - url will be the callback URL or intended destination
             // NextAuth handles OAuth URL generation internally, so we shouldn't interfere
-            
+
             // Allow Apple OAuth redirects to pass through (don't intercept)
             if (url.includes("appleid.apple.com") || url.startsWith("https://appleid.apple.com")) {
                 console.log("🍎 Apple OAuth redirect detected, allowing through:", url);
                 return url;
             }
-            
+
             // If URL is external (like OAuth providers), allow it through
             try {
                 const urlObj = new URL(url);
@@ -165,55 +165,55 @@ const handler = NextAuth({
             } catch (e) {
                 // Invalid URL, continue with normal handling
             }
-            
+
             // Handle OAuth callback URLs - redirect back to app
             if (url.includes("/api/auth/callback/google")) {
                 console.log("🔄 Google OAuth callback detected, redirecting to app");
                 return `${baseUrl}/`;
             }
-            
+
             // Handle Apple OAuth callback URLs
             if (url.includes("/api/auth/callback/apple")) {
                 console.log("🍎 Apple OAuth callback detected, redirecting to app");
                 return `${baseUrl}/`;
             }
-            
+
             // Handle custom scheme callbacks (for mobile)
             if (url.startsWith("cardscope://")) {
                 console.log("📱 Custom scheme callback detected:", url);
                 return `${baseUrl}/mobile-auth-success`;
             }
-            
+
             // Handle mobile auth success redirect
             if (url.includes("/mobile-auth-success")) {
                 console.log("📱 Mobile auth success redirect");
                 return `${baseUrl}/mobile-auth-success`;
             }
-            
+
             // Handle error redirects
             if (url.includes("error=")) {
                 console.log("⚠️ Error in redirect URL:", url);
                 // Still redirect to login but preserve error for display
                 return `${baseUrl}/login?${url.split('?')[1] || ''}`;
             }
-            
+
             // Handle other redirects
             if (url.startsWith("/")) return `${baseUrl}${url}`;
             else if (new URL(url).origin === baseUrl) return url;
-            
+
             // Default: return baseUrl (NextAuth will handle OAuth redirects internally)
             return baseUrl;
         },
 
         /** ✅ When user signs in via Google or Apple */
         async signIn({ user, account, profile }) {
-            console.log("🔍 signIn callback called:", { 
-                provider: account?.provider, 
-                hasUser: !!user, 
+            console.log("🔍 signIn callback called:", {
+                provider: account?.provider,
+                hasUser: !!user,
                 hasAccount: !!account,
-                accountType: account?.type 
+                accountType: account?.type
             });
-            
+
             try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
                 const provider = account?.provider || "google";
@@ -275,7 +275,7 @@ const handler = NextAuth({
         signIn: "/login",
         error: "/login",
     },
-    
+
     /** ✅ Events for debugging */
     events: {
         async signIn(message) {
@@ -297,7 +297,7 @@ const handler = NextAuth({
             console.log("🔍 session event:", message);
         },
     },
-    
+
     /** ✅ Logger for detailed error tracking */
     logger: {
         error(code, metadata) {
