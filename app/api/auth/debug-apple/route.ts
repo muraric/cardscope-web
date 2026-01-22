@@ -14,6 +14,8 @@ export async function GET() {
       appleKeyIdValue: process.env.APPLE_KEY_ID,
     },
     nextAuth: {
+      url: process.env.NEXTAUTH_URL,
+      expectedCallbackUrl: process.env.NEXTAUTH_URL ? `${process.env.NEXTAUTH_URL}/api/auth/callback/apple` : 'not set (will be inferred by NextAuth)',
       hasSecret: !!process.env.NEXTAUTH_SECRET,
       secretLength: process.env.NEXTAUTH_SECRET?.length || 0,
     },
@@ -29,7 +31,7 @@ export async function GET() {
   try {
     const AppleProviderModule = await import('next-auth/providers/apple');
     const AppleProvider = AppleProviderModule.default || AppleProviderModule;
-    
+
     if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
       try {
         AppleProvider({
