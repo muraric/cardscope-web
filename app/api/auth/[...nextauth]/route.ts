@@ -47,7 +47,7 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
             // Ensure NextAuth uses id_token if present
             idToken: true,
             // Enable PKCE and state checks for security
-            // checks: ["pkce", "state"], // relying on defaults
+            checks: ["pkce", "state"] as any,
         };
 
         console.log("🔍 Creating Apple provider with config:", {
@@ -86,6 +86,7 @@ const handler = NextAuth({
 
     // ✅ Configure cookies explicitly for Apple Sign-In compatibility
     // Apple Sign-In requires proper cookie configuration for PKCE and state
+    /*
     cookies: {
         callbackUrl: {
             name: `__Secure-next-auth.callback-url`,
@@ -124,6 +125,7 @@ const handler = NextAuth({
             },
         },
     },
+    */
 
     // ✅ Trust host for proper redirect handling (important for Vercel)
     // trustHost: true, // ❌ Types mismatch, relying on NEXTAUTH_URL env var
