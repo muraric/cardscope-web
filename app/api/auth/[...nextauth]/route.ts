@@ -34,6 +34,7 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
         const appleConfig = {
             clientId: process.env.APPLE_ID,
             clientSecret: process.env.APPLE_SECRET,
+            /*
             authorization: {
                 params: {
                     // CRITICAL: Must include 'openid' scope for id_token to be present
@@ -44,10 +45,11 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
                     response_type: "code id_token",
                 },
             },
+            */
             // Ensure NextAuth uses id_token if present
-            idToken: true,
+            // idToken: true,
             // Enable PKCE and state checks for security
-            checks: ["pkce", "state"] as any,
+            // checks: ["pkce", "state"] as any,
         };
 
         console.log("🔍 Creating Apple provider with config:", {
@@ -55,7 +57,7 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
             hasSecret: !!appleConfig.clientSecret,
             nextAuthUrl: process.env.NEXTAUTH_URL,
             callbackUrl: process.env.NEXTAUTH_URL ? `${process.env.NEXTAUTH_URL}/api/auth/callback/apple` : 'not set',
-            scope: appleConfig.authorization.params.scope,
+            // scope: appleConfig.authorization.params.scope,
         });
 
         const appleProvider = AppleProvider(appleConfig);

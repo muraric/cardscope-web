@@ -10,6 +10,8 @@ export async function GET() {
       hasAppleKeyId: !!process.env.APPLE_KEY_ID,
       appleIdValue: process.env.APPLE_ID,
       appleSecretLength: process.env.APPLE_SECRET?.length || 0,
+      appleSecretHasNewLines: (process.env.APPLE_SECRET || '').includes('\n'),
+      appleSecretStartsWithBegin: (process.env.APPLE_SECRET || '').startsWith('-----BEGIN'),
       appleTeamIdValue: process.env.APPLE_TEAM_ID,
       appleKeyIdValue: process.env.APPLE_KEY_ID,
     },
