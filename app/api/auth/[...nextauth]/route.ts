@@ -30,44 +30,13 @@ const providers: any[] = [
 
 // Only add Apple provider if configured
 if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
-    try {
-        const appleConfig = {
-            clientId: process.env.APPLE_ID,
+    providers.push(
+        AppleProvider({
+            clientId: process.env.APPLE_ID, // Force unwrap if you are sure it exists or handle undefined
             clientSecret: process.env.APPLE_SECRET,
-            authorization: {
-                params: {
-                    // CRITICAL: Must include 'openid' scope for id_token to be present
-                    scope: "openid name email",
-                    // Apple requires form_post when requesting user info scopes
-                    response_mode: "form_post",
-                    // Request both code and id_token
-                    response_type: "code id_token",
-                },
-            },
-            // Ensure NextAuth uses id_token if present
-            idToken: true,
-            // Enable PKCE and state checks for security
-            checks: ["pkce", "state"] as any,
-        };
-
-        console.log("🔍 Creating Apple provider with config:", {
-            clientId: appleConfig.clientId,
-            hasSecret: !!appleConfig.clientSecret,
-            nextAuthUrl: process.env.NEXTAUTH_URL,
-            callbackUrl: process.env.NEXTAUTH_URL ? `${process.env.NEXTAUTH_URL}/api/auth/callback/apple` : 'not set',
-            // scope: appleConfig.authorization.params.scope,
-        });
-
-        const appleProvider = AppleProvider(appleConfig);
-        providers.push(appleProvider);
-
-        console.log("✅ Apple provider initialized successfully");
-        console.log("✅ Apple provider ID:", appleProvider.id);
-    } catch (error: any) {
-        console.error("❌ Failed to initialize Apple provider:", error.message);
-        console.error("Error details:", error);
-        console.error("Error stack:", error.stack);
-    }
+            checks: ['state'], // PKCE might be failing due to cookie handling or Apple support, falling back to state only
+        })
+    );
 } else {
     console.warn("⚠️ Apple Sign-In not configured: APPLE_ID and APPLE_SECRET environment variables are required");
 }
@@ -82,53 +51,32 @@ const handler = NextAuth({
     secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
 
     // ✅ Use default cookie behavior but with custom settings
-    useSecureCookies: process.env.NODE_ENV === 'production',
+    useSecureCookies: true, // Force secure cookies for handling SameSite: None
 
     // ✅ Configure cookies explicitly for Apple Sign-In compatibility
     // Apple Sign-In requires proper cookie configuration for PKCE and state
-    /*
     cookies: {
-        callbackUrl: {
-            name: `__Secure-next-auth.callback-url`,
-            options: {
-                httpOnly: false,
-                sameSite: "none",
-                path: "/",
-                secure: process.env.NODE_ENV === 'production',
-            },
-        },
-        csrfToken: {
-            name: `__Secure-next-auth.csrf-token`,
-            options: {
-                httpOnly: true,
-                sameSite: "none",
-                path: "/",
-                secure: process.env.NODE_ENV === 'production',
-            },
-        },
-        pkceCodeVerifier: {
-            name: `__Secure-next-auth.pkce.code_verifier`,
-            options: {
-                httpOnly: true,
-                sameSite: "none",
-                path: "/",
-                secure: process.env.NODE_ENV === 'production',
-            },
-        },
         state: {
-            name: `__Secure-next-auth.state`,
+            name: '__Secure-next-auth.state',
             options: {
                 httpOnly: true,
-                sameSite: "none",
-                path: "/",
-                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'none',
+                path: '/',
+                secure: true,
             },
         },
+        callbackUrl: {
+            name: '__Secure-next-auth.callback-url',
+            options: {
+                sameSite: 'none',
+                path: '/',
+                secure: true,
+            }
+        }
     },
-    */
 
     // ✅ Trust host for proper redirect handling (important for Vercel)
-    // trustHost: true, // ❌ Types mismatch, relying on NEXTAUTH_URL env var
+    trustHost: true,
 
     session: {
         strategy: "jwt", // ✅ stateless sessions for Next.js
