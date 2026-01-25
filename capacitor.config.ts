@@ -4,17 +4,25 @@ const config: CapacitorConfig = {
     appId: 'com.shomuran.cardcompass',
     appName: 'CardCompass',
     webDir: 'dist',
-    
-    // ⚠️ SERVER CONFIGURATION FOR APP STORE DEPLOYMENT
-    // Using remote server for TestFlight (valid and easier approach)
-    // Comment out server.url below if you want local bundling instead
+
     server: {
-        // Use production Vercel URL
         url: 'https://cardscope-web.vercel.app',
         androidScheme: 'https',
-        iosScheme: 'https'
+        iosScheme: 'https',
+        // Allow navigation to custom scheme
+        allowNavigation: [
+            'cardscope://*',
+            'https://cardscope-web.vercel.app/*',
+            'https://appleid.apple.com/*'
+        ],
+        cleartext: true // Allow mixed content if needed
     },
-    
+
+    ios: {
+        // Register custom URL scheme
+        scheme: 'cardscope'
+    },
+
     plugins: {
         GoogleAuth: {
             scopes: ['profile', 'email'],

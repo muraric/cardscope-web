@@ -5,7 +5,16 @@
 	"server": {
 		"url": "https://cardscope-web.vercel.app",
 		"androidScheme": "https",
-		"iosScheme": "https"
+		"iosScheme": "https",
+		"allowNavigation": [
+			"cardscope://*",
+			"https://cardscope-web.vercel.app/*",
+			"https://appleid.apple.com/*"
+		],
+		"cleartext": true
+	},
+	"ios": {
+		"scheme": "cardscope"
 	},
 	"plugins": {
 		"GoogleAuth": {
@@ -18,6 +27,7 @@
 		}
 	},
 	"packageClassList": [
+		"AppPlugin",
 		"GeolocationPlugin",
 		"StatusBarPlugin"
 	]

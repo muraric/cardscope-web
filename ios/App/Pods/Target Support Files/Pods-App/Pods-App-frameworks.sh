@@ -177,6 +177,7 @@ code_sign_if_enabled() {
 
 if [[ "$CONFIGURATION" == "Debug" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/Capacitor/Capacitor.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/CapacitorApp/CapacitorApp.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorCordova/Cordova.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorGeolocation/CapacitorGeolocation.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorStatusBar/CapacitorStatusBar.framework"
@@ -184,6 +185,7 @@ if [[ "$CONFIGURATION" == "Debug" ]]; then
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/Capacitor/Capacitor.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/CapacitorApp/CapacitorApp.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorCordova/Cordova.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorGeolocation/CapacitorGeolocation.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorStatusBar/CapacitorStatusBar.framework"
