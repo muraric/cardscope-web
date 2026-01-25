@@ -70,7 +70,7 @@ const handler = NextAuth({
         }
     },
 
-    trustHost: true,
+
 
     session: {
         strategy: "jwt",
