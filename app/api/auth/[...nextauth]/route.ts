@@ -6,6 +6,7 @@ const handler = NextAuth({
         AppleProvider({
             clientId: process.env.APPLE_ID!,
             clientSecret: process.env.APPLE_SECRET!,
+            checks: ['state'], // Use state instead of PKCE
             authorization: {
                 url: "https://appleid.apple.com/auth/authorize",
                 params: {
