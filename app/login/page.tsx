@@ -37,7 +37,7 @@ export default function Login() {
 
         try {
             const response = await api.post("/api/auth/login", { email, password });
-            
+
             // Create user object compatible with our AuthContext
             const userData = {
                 id: email, // Use email as ID for manual login
@@ -45,22 +45,22 @@ export default function Login() {
                 email: email,
                 picture: null // No picture for manual login
             };
-            
+
             // Store in localStorage for AuthContext
             localStorage.setItem('cardscope_user', JSON.stringify(userData));
             console.log("✅ Stored user in localStorage:", userData);
-            
+
             // Trigger auth update event multiple times to ensure it's caught
             window.dispatchEvent(new Event('authUpdated'));
-            
+
             // Give React time to process the state update
             await new Promise(resolve => setTimeout(resolve, 200));
-            
+
             // Trigger again to be safe
             window.dispatchEvent(new Event('authUpdated'));
-            
+
             console.log("✅ Manual login successful:", email);
-            
+
             // Use window.location for a hard redirect to ensure clean state
             window.location.href = '/';
         } catch (err) {
@@ -74,23 +74,23 @@ export default function Login() {
         try {
             console.log("🔍 Starting Google sign-in...");
             console.log("📱 Is native platform:", Capacitor.isNativePlatform());
-            
+
             // Build OAuth URL for both mobile and web
             // Use localhost callback for dev, Vercel for production
             const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const redirectUri = isDev 
+            const redirectUri = isDev
                 ? 'http://localhost:3000/auth/callback'
                 : 'https://cardscope-web.vercel.app/auth/callback';
-            
+
             const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
                 `client_id=488875684334-urrslagsla2btuuri02acrunqum7d2bk.apps.googleusercontent.com&` +
                 `redirect_uri=${encodeURIComponent(redirectUri)}&` +
                 `response_type=code&` +
                 `scope=openid%20email%20profile&` +
                 `access_type=offline`;
-            
+
             console.log("📱 OAuth URL:", oauthUrl);
-            
+
             if (Capacitor.isNativePlatform()) {
                 // For mobile iOS, redirect WebView to OAuth URL
                 // The callback will redirect back to cardscope:// scheme
@@ -110,27 +110,27 @@ export default function Login() {
     const handleAppleSignIn = async () => {
         try {
             console.log("🍎 Starting Apple sign-in...");
-            
+
             // Check if Apple Sign-In is configured
             const response = await fetch('/api/auth/providers');
             const providers = await response.json();
-            
+
             if (!providers.apple) {
                 setError("Apple Sign-In is not configured. Please contact support or use another login method.");
                 console.error("❌ Apple provider not available");
                 return;
             }
-            
+
             // Use web-based Apple Sign-In via NextAuth
             // This works on both web and iOS via WebView
             // Native iOS Apple Sign-In can be added later by installing @capacitor-community/apple-sign-in
-            window.location.href = '/api/auth/signin/apple';
+            window.location.href = `/api/auth/signin/apple?callbackUrl=${encodeURIComponent('/auth/sync')}`;
         } catch (err) {
             console.error("❌ Apple sign-in failed:", err);
             setError("Apple sign-in failed. Please try again.");
         }
     };
-    
+
     // Check for error in URL params
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -247,7 +247,7 @@ export default function Login() {
                     className="flex items-center justify-center w-full bg-black text-white rounded-lg py-2 hover:bg-gray-800 transition"
                 >
                     <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C4.79 15.25 3.8 10.45 6.05 7.96c1.15-1.23 2.5-1.93 4.05-1.93 1.18 0 2.06.4 3.08.88.78.38 1.48.58 1.98.58.44 0 1.15-.2 1.98-.58 1.02-.48 1.9-.88 3.08-.88 1.58 0 2.93.73 4.08 1.96-3.12 3.53-2.61 8.5 1.08 11.32-1.1 1.01-2.2 1.4-3.18 1.4zm-2.04-17.3c.15 1.15-.34 2.3-1.05 3.04-.73.76-1.9 1.25-3.04 1.15-.15-1.15.35-2.3 1.06-3.04.74-.76 1.91-1.24 3.03-1.15z"/>
+                        <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C4.79 15.25 3.8 10.45 6.05 7.96c1.15-1.23 2.5-1.93 4.05-1.93 1.18 0 2.06.4 3.08.88.78.38 1.48.58 1.98.58.44 0 1.15-.2 1.98-.58 1.02-.48 1.9-.88 3.08-.88 1.58 0 2.93.73 4.08 1.96-3.12 3.53-2.61 8.5 1.08 11.32-1.1 1.01-2.2 1.4-3.18 1.4zm-2.04-17.3c.15 1.15-.34 2.3-1.05 3.04-.73.76-1.9 1.25-3.04 1.15-.15-1.15.35-2.3 1.06-3.04.74-.76 1.91-1.24 3.03-1.15z" />
                     </svg>
                     Continue with Apple
                 </button>

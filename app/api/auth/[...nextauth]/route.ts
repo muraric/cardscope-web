@@ -1,7 +1,9 @@
 import NextAuth from "next-auth";
 import AppleProvider from "next-auth/providers/apple";
 
-const handler = NextAuth({
+import { NextAuthOptions } from "next-auth";
+
+export const authOptions: NextAuthOptions = {
     providers: [
         AppleProvider({
             clientId: process.env.APPLE_ID!,
@@ -64,6 +66,8 @@ const handler = NextAuth({
     },
     // @ts-ignore - trustHost is valid but missing from some type definitions
     trustHost: true,
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
