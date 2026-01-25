@@ -58,6 +58,28 @@ export const authOptions: NextAuthOptions = {
     },
     debug: true,
     callbacks: {
+        async redirect({ url, baseUrl }) {
+            console.log("🔍 Redirect callback - URL:", url, "BaseURL:", baseUrl);
+
+            // For mobile custom scheme
+            if (url.startsWith("cardscope://")) {
+                return url;
+            }
+
+            // Allow relative URLs
+            if (url.startsWith("/")) {
+                return `${baseUrl}${url}`;
+            }
+
+            // Allow same origin URLs
+            if (new URL(url).origin === baseUrl) {
+                return url;
+            }
+
+            // Default to baseUrl
+            return baseUrl;
+        },
+
         async signIn({ user, account, profile }) {
             console.log("🍎 signIn callback START:", {
                 provider: account?.provider,
