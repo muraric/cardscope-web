@@ -71,6 +71,8 @@ const handler = NextAuth({
     },
 
 
+    // @ts-ignore - trustHost is valid but missing from some type definitions
+    trustHost: true,
 
     session: {
         strategy: "jwt",
