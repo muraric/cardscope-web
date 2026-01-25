@@ -44,6 +44,25 @@ export default function AuthSyncPage() {
 
                 // Short delay to ensure local storage event propagates
                 setTimeout(() => {
+                    // Force redirect to custom scheme if on native platform to close InAppBrowser/Safari
+                    // Or to trigger AppUrlListener navigation
+                    const isNative = window.location.hostname !== 'localhost' &&
+                        window.location.hostname !== 'cardscope-web.vercel.app';
+
+                    // Alternatively use Capacitor.isNativePlatform() if available in this context
+                    // We will use a safe approach: try the custom scheme nav
+
+                    try {
+                        // @ts-ignore
+                        if (window.Capacitor?.isNativePlatform()) {
+                            console.log("📱 Native platform detected, diverting to app scheme");
+                            window.location.href = "cardscope://auth-success";
+                            return;
+                        }
+                    } catch (e) {
+                        console.log("Native check failed", e);
+                    }
+
                     router.replace("/");
                 }, 500);
 
