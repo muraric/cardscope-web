@@ -123,6 +123,10 @@ export const authOptions: NextAuthOptions = {
             }
         },
     },
+    pages: {
+        signIn: '/login',
+        error: '/login',
+    },
     // @ts-ignore - trustHost is valid but missing from some type definitions
     trustHost: true,
 };
