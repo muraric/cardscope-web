@@ -140,20 +140,35 @@ export default function Login() {
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const errorParam = params.get('error');
-        if (errorParam === 'apple') {
-            // Check if Apple provider is actually available
-            fetch('/api/auth/providers')
-                .then(res => res.json())
-                .then(providers => {
-                    if (providers.apple) {
-                        setError("Apple Sign-In failed. Please check that the Return URL 'https://cardscope-web.vercel.app/api/auth/callback/apple' is configured in Apple Developer Console.");
-                    } else {
-                        setError("Apple Sign-In is not configured. Please add environment variables to Vercel or use another login method.");
-                    }
-                })
-                .catch(() => {
-                    setError("Apple Sign-In failed. Please check Apple Developer Console configuration.");
-                });
+
+        console.log("🔍 Login page loaded with params:", Object.fromEntries(params.entries()));
+
+        if (errorParam) {
+            console.error("❌ Login error detected:", errorParam);
+
+            if (errorParam === 'apple') {
+                // Legacy check - unclear where this comes from, but keeping it
+                fetch('/api/auth/providers')
+                    .then(res => res.json())
+                    .then(providers => {
+                        if (providers.apple) {
+                            setError("Apple Sign-In failed. Please check that the Return URL 'https://cardscope-web.vercel.app/api/auth/callback/apple' is configured in Apple Developer Console.");
+                        } else {
+                            setError("Apple Sign-In is not configured. Please add environment variables to Vercel or use another login method.");
+                        }
+                    })
+                    .catch(() => {
+                        setError("Apple Sign-In failed. Please check Apple Developer Console configuration.");
+                    });
+            } else if (errorParam === 'OAuthCallback') {
+                setError("Authentication failed during callback. This often means the state cookie was not found or the redirect URL mismatch. Please try again.");
+            } else if (errorParam === 'AccessDenied') {
+                setError("Access denied. You may have cancelled the sign-in or your account is restricted.");
+            } else if (errorParam === 'Callback') {
+                setError("Sign-in callback failed. Please check your network connection and try again.");
+            } else {
+                setError(`Sign-in error: ${errorParam}`);
+            }
         }
     }, []);
 
