@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
             name: `__Secure-next-auth.session-token`,
             options: {
                 httpOnly: true,
-                sameSite: 'lax',
+                sameSite: 'none',
                 path: '/',
                 secure: true,
             },
@@ -31,7 +31,7 @@ export const authOptions: NextAuthOptions = {
             name: `__Secure-next-auth.callback-url`,
             options: {
                 httpOnly: true,
-                sameSite: 'lax',
+                sameSite: 'none',
                 path: '/',
                 secure: true,
             },
@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
             name: `__Host-next-auth.csrf-token`,
             options: {
                 httpOnly: true,
-                sameSite: 'lax',
+                sameSite: 'none',
                 path: '/',
                 secure: true,
             },
@@ -49,7 +49,7 @@ export const authOptions: NextAuthOptions = {
             name: `__Secure-next-auth.state`,
             options: {
                 httpOnly: true,
-                sameSite: 'lax', // This is critical for Apple's form_post!
+                sameSite: 'none',
                 path: '/',
                 secure: true,
                 maxAge: 900, // 15 minutes
