@@ -35,6 +35,22 @@ if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
             clientId: process.env.APPLE_ID,
             clientSecret: process.env.APPLE_SECRET,
             checks: ['state'],
+            authorization: {
+                params: {
+                    scope: 'name email',
+                    response_mode: 'form_post',
+                    response_type: 'code',
+                }
+            },
+            profile(profile) {
+                console.log("🍎 Apple profile received:", profile);
+                return {
+                    id: profile.sub,
+                    name: profile.name,
+                    email: profile.email,
+                    image: null,
+                }
+            }
         })
     );
 } else {
