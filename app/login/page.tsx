@@ -124,7 +124,12 @@ export default function Login() {
             // Use web-based Apple Sign-In via NextAuth
             // This works on both web and iOS via WebView
             // Native iOS Apple Sign-In can be added later by installing @capacitor-community/apple-sign-in
-            window.location.href = `/api/auth/signin/apple?callbackUrl=${encodeURIComponent('/auth/sync')}`;
+            const callbackUrl = Capacitor.isNativePlatform()
+                ? 'cardscope://auth/sync'
+                : '/auth/sync';
+            console.log("🍎 Using callbackUrl:", callbackUrl);
+
+            window.location.href = `/api/auth/signin/apple?callbackUrl=${encodeURIComponent(callbackUrl)}`;
         } catch (err) {
             console.error("❌ Apple sign-in failed:", err);
             setError("Apple sign-in failed. Please try again.");
