@@ -17,6 +17,45 @@ export const authOptions: NextAuthOptions = {
         })
     ],
     secret: process.env.NEXTAUTH_SECRET,
+    cookies: {
+        sessionToken: {
+            name: `__Secure-next-auth.session-token`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: true,
+            },
+        },
+        callbackUrl: {
+            name: `__Secure-next-auth.callback-url`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: true,
+            },
+        },
+        csrfToken: {
+            name: `__Host-next-auth.csrf-token`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: true,
+            },
+        },
+        state: {
+            name: `__Secure-next-auth.state`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax', // This is critical for Apple's form_post!
+                path: '/',
+                secure: true,
+                maxAge: 900, // 15 minutes
+            },
+        },
+    },
     debug: true,
     callbacks: {
         async signIn({ user, account, profile }) {
