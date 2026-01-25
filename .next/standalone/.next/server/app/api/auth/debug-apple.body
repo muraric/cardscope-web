@@ -1,1 +1,0 @@
-{"environment":{"NODE_ENV":"production","hasAppleId":false,"hasAppleSecret":false,"hasAppleTeamId":false,"hasAppleKeyId":false,"appleSecretLength":0},"nextAuth":{"hasSecret":false,"secretLength":0},"providers":{"googleAvailable":true,"appleAvailable":false,"appleError":"Missing APPLE_ID or APPLE_SECRET"}}
