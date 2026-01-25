@@ -11,7 +11,7 @@ const handler = NextAuth({
                 url: "https://appleid.apple.com/auth/authorize",
                 params: {
                     scope: "email name",
-                    response_mode: "form_post",
+                    response_mode: "query", // Changed from form_post
                     response_type: "code"
                 }
             },
