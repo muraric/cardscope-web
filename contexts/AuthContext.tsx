@@ -53,10 +53,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     checkAuth();
 
+    // Check for pending deep link stored by native code
+    const checkPendingDeepLink = () => {
+      try {
+        const pendingDeepLink = localStorage.getItem('pendingDeepLink');
+        if (pendingDeepLink && pendingDeepLink.includes('cardscope://')) {
+          console.log('📱 Found pending deep link in localStorage:', pendingDeepLink);
+          localStorage.removeItem('pendingDeepLink'); // Clear it so we don't process again
+          handleDeepLinkUrl(pendingDeepLink);
+        }
+      } catch (e) {
+        console.log('Error checking pending deep link:', e);
+      }
+    };
+
+    // Check immediately and after a delay (in case native code sets it after React mounts)
+    checkPendingDeepLink();
+    const pendingCheckTimeout = setTimeout(checkPendingDeepLink, 1000);
+    const pendingCheckTimeout2 = setTimeout(checkPendingDeepLink, 2000);
+
     // Listen for deep link from Capacitor (for mobile)
     if (Capacitor.isNativePlatform()) {
       console.log('📱 Setting up deep link listeners...');
-      
+
       // Listen for Capacitor's appUrlOpen event
       const handleAppUrlOpen = (event: any) => {
         console.log('📱 Received appUrlOpen event:', event.detail?.url);
@@ -64,17 +83,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           handleDeepLinkUrl(event.detail.url);
         }
       };
-      
+
       window.addEventListener('appUrlOpen', handleAppUrlOpen);
-      
+
       // Also listen for custom deepLink event
       const handleDeepLinkEvent = (event: any) => {
         console.log('📱 Received deepLink event from native:', event.detail);
         handleDeepLinkUrl(event.detail);
       };
-      
+
       window.addEventListener('deepLink', handleDeepLinkEvent);
-      
+
       // Also check window.location periodically for deep links
       const checkLocation = () => {
         const url = window.location.href;
@@ -82,17 +101,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log('📱 Found cardscope:// in window.location:', url);
           handleDeepLinkUrl(url);
         }
+        // Also check for pending deep link
+        checkPendingDeepLink();
       };
-      
+
       // Check immediately and then every second
       checkLocation();
       const interval = setInterval(checkLocation, 1000);
-      
+
       // Cleanup listeners on unmount
       return () => {
         window.removeEventListener('appUrlOpen', handleAppUrlOpen);
         window.removeEventListener('deepLink', handleDeepLinkEvent);
         clearInterval(interval);
+        clearTimeout(pendingCheckTimeout);
+        clearTimeout(pendingCheckTimeout2);
       };
     }
 
