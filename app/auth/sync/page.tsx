@@ -6,6 +6,61 @@ import { useRouter } from "next/navigation";
 export default function AuthSyncPage() {
     const router = useRouter();
     const [status, setStatus] = useState("Syncing session...");
+    const [showFallback, setShowFallback] = useState(false);
+
+    // Check if running on mobile browser (iOS Safari after Apple OAuth redirect)
+    const isMobileBrowser = () => {
+        return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    };
+
+    const redirectToApp = (userData: any) => {
+        // Prepare the app URL with user data
+        const encodedUserData = encodeURIComponent(JSON.stringify(userData));
+        const appUrl = `cardscope://auth-success?status=success&userData=${encodedUserData}`;
+
+        console.log("📱 Redirecting to app with URL:", appUrl);
+
+        // Method 1: Direct location change
+        try {
+            window.location.href = appUrl;
+            console.log("📱 Attempted redirect via window.location.href");
+        } catch (error) {
+            console.log("Method 1 failed:", error);
+        }
+
+        // Method 2: Create hidden iframe (backup)
+        setTimeout(() => {
+            try {
+                const iframe = document.createElement("iframe");
+                iframe.style.display = "none";
+                iframe.src = appUrl;
+                document.body.appendChild(iframe);
+                console.log("📱 Attempted redirect via iframe");
+
+                // Remove iframe after attempt
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                }, 1000);
+            } catch (error) {
+                console.log("Method 2 failed:", error);
+            }
+        }, 500);
+
+        // Method 3: Try window.open (backup)
+        setTimeout(() => {
+            try {
+                window.open(appUrl, "_self");
+                console.log("📱 Attempted redirect via window.open");
+            } catch (error) {
+                console.log("Method 3 failed:", error);
+            }
+        }, 1000);
+
+        // Show fallback message after attempts
+        setTimeout(() => {
+            setShowFallback(true);
+        }, 2000);
+    };
 
     useEffect(() => {
         const syncSession = async () => {
@@ -44,25 +99,29 @@ export default function AuthSyncPage() {
 
                 // Short delay to ensure local storage event propagates
                 setTimeout(() => {
-                    // Force redirect to custom scheme if on native platform to close InAppBrowser/Safari
-                    // Or to trigger AppUrlListener navigation
-                    const isNative = window.location.hostname !== 'localhost' &&
-                        window.location.hostname !== 'cardscope-web.vercel.app';
+                    // Check if on mobile browser (iOS Safari after Apple OAuth)
+                    // This is more reliable than checking Capacitor.isNativePlatform()
+                    // because after Apple OAuth, we're in Safari, not the Capacitor WebView
+                    if (isMobileBrowser()) {
+                        console.log("📱 Mobile browser detected, redirecting to app via custom scheme");
+                        redirectToApp(localUser);
+                        return;
+                    }
 
-                    // Alternatively use Capacitor.isNativePlatform() if available in this context
-                    // We will use a safe approach: try the custom scheme nav
-
+                    // Also try Capacitor check as fallback for in-app WebView scenarios
                     try {
                         // @ts-ignore
                         if (window.Capacitor?.isNativePlatform()) {
-                            console.log("📱 Native platform detected, diverting to app scheme");
-                            window.location.href = "cardscope://auth-success";
+                            console.log("📱 Native platform detected via Capacitor, diverting to app scheme");
+                            redirectToApp(localUser);
                             return;
                         }
                     } catch (e) {
                         console.log("Native check failed", e);
                     }
 
+                    // Web flow - redirect to home
+                    console.log("🌐 Web browser detected, redirecting to home");
                     router.replace("/");
                 }, 500);
 
@@ -77,6 +136,31 @@ export default function AuthSyncPage() {
 
         syncSession();
     }, [router]);
+
+    if (showFallback) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
+                <div className="text-center max-w-md">
+                    <h2 className="text-xl font-semibold text-green-600 mb-4">✅ Authentication Complete!</h2>
+                    <p className="text-gray-600 mb-4">Your Apple account has been successfully linked.</p>
+                    <p className="text-gray-500 mb-6">Please return to the <strong>CardScope</strong> app to continue.</p>
+                    <div className="bg-gray-100 p-4 rounded-lg mb-6">
+                        <p className="text-sm text-gray-600">
+                            <strong>How to return to the app:</strong><br />
+                            • Swipe up from the bottom of your screen<br />
+                            • Or tap the CardScope app icon on your home screen
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => window.close()}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+                    >
+                        Close Browser
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 space-y-4">
