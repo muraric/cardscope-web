@@ -37,28 +37,49 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
         // Called when the app was launched with a url. Feel free to add additional processing here,
         // but if you want the App API to support tracking app url opens, make sure to keep this call
-        
+
         // Handle custom deep link schemes
         if url.scheme == "cardscope" {
             print("📱 Received deep link: \(url.absoluteString)")
-            
+
+            // Store the deep link URL to be processed when WebView is ready
+            UserDefaults.standard.set(url.absoluteString, forKey: "pendingDeepLink")
+
             // Inject JavaScript to notify the WebView about the deep link
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                if let window = UIApplication.shared.keyWindow,
-                   let rootViewController = window.rootViewController as? CAPBridgeViewController,
-                   let bridge = rootViewController.bridge {
-                    let js = "window.dispatchEvent(new CustomEvent('deepLink', { detail: '\(url.absoluteString.replacingOccurrences(of: "'", with: "\\'"))' }));"
-                    bridge.webView?.evaluateJavaScript(js, completionHandler: nil)
-                    print("📱 Injected JavaScript to notify WebView about deep link")
+            // Try multiple times with increasing delays to ensure WebView is ready
+            let delays: [Double] = [0.5, 1.0, 2.0, 3.0]
+            for delay in delays {
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    self.injectDeepLinkJS(url: url)
                 }
             }
-            
+
             // Open in WebView for deep links
             return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
         }
-        
+
         // For HTTP/HTTPS URLs, let Capacitor handle it
         return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
+    }
+
+    private func injectDeepLinkJS(url: URL) {
+        if let window = UIApplication.shared.keyWindow,
+           let rootViewController = window.rootViewController as? CAPBridgeViewController,
+           let bridge = rootViewController.bridge {
+            let escapedUrl = url.absoluteString.replacingOccurrences(of: "'", with: "\\'")
+            let js = """
+            (function() {
+                console.log('📱 Native: Injecting deep link event');
+                window.dispatchEvent(new CustomEvent('deepLink', { detail: '\(escapedUrl)' }));
+                // Also store in localStorage as backup
+                try {
+                    localStorage.setItem('pendingDeepLink', '\(escapedUrl)');
+                } catch(e) {}
+            })();
+            """
+            bridge.webView?.evaluateJavaScript(js, completionHandler: nil)
+            print("📱 Injected JavaScript to notify WebView about deep link")
+        }
     }
 
     func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
