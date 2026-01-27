@@ -6,9 +6,20 @@ import SafariServices
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    var pendingAuthUrl: URL? // Store URL to process after window is ready
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+
+        // Check if app was launched with a URL
+        if let url = launchOptions?[.url] as? URL {
+            print("📱 App launched with URL: \(url.absoluteString)")
+            if url.scheme == "cardscope" {
+                pendingAuthUrl = url
+                UserDefaults.standard.set(url.absoluteString, forKey: "pendingDeepLink")
+            }
+        }
+
         return true
     }
 
@@ -29,21 +40,40 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
 
-        // Check for pending deep link and process it
+        print("📱 applicationDidBecomeActive called")
+        print("📱 window: \(String(describing: self.window))")
+        print("📱 rootViewController: \(String(describing: self.window?.rootViewController))")
+
+        // Check for pending auth URL stored in memory
+        if let url = pendingAuthUrl {
+            print("📱 Processing pendingAuthUrl: \(url.absoluteString)")
+            pendingAuthUrl = nil // Clear to prevent duplicate processing
+
+            // Give the WebView time to fully initialize
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                self.navigateToAuthSuccess(url: url)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                self.injectDeepLinkJS(url: url)
+            }
+            return
+        }
+
+        // Check for pending deep link in UserDefaults
         if let pendingDeepLink = UserDefaults.standard.string(forKey: "pendingDeepLink"),
            let url = URL(string: pendingDeepLink) {
-            print("📱 Processing pending deep link on app active: \(pendingDeepLink)")
+            print("📱 Processing pending deep link from UserDefaults: \(pendingDeepLink)")
 
             // Clear it immediately to prevent duplicate processing
             UserDefaults.standard.removeObject(forKey: "pendingDeepLink")
 
             // Wait for WebView to be ready, then navigate
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 self.navigateToAuthSuccess(url: url)
             }
 
             // Also try injecting JS as backup
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                 self.injectDeepLinkJS(url: url)
             }
         }
@@ -57,21 +87,34 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the app was launched with a url. Feel free to add additional processing here,
         // but if you want the App API to support tracking app url opens, make sure to keep this call
 
+        print("📱 application(_:open:options:) called")
+        print("📱 URL: \(url.absoluteString)")
+        print("📱 window: \(String(describing: self.window))")
+
         // Handle custom deep link schemes
         if url.scheme == "cardscope" {
-            print("📱 Received deep link: \(url.absoluteString)")
+            print("📱 Received cardscope deep link: \(url.absoluteString)")
 
-            // Store the deep link URL in UserDefaults to be processed when WebView is ready
+            // Store the deep link URL in UserDefaults for persistence
             UserDefaults.standard.set(url.absoluteString, forKey: "pendingDeepLink")
 
-            // Navigate the WebView directly to the auth-success page with the query params
-            // This is more reliable than injecting JS because Safari localStorage != WebView localStorage
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.navigateToAuthSuccess(url: url)
+            // Check if window and WebView are ready
+            if let rootViewController = self.window?.rootViewController as? CAPBridgeViewController,
+               let bridge = rootViewController.bridge,
+               bridge.webView != nil {
+                print("📱 WebView is ready, navigating immediately")
+                // WebView is ready, navigate now
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    self.navigateToAuthSuccess(url: url)
+                }
+            } else {
+                print("📱 WebView not ready, storing URL for later processing")
+                // WebView not ready, store URL to process in applicationDidBecomeActive
+                pendingAuthUrl = url
             }
 
-            // Also inject JavaScript as backup
-            let delays: [Double] = [1.0, 2.0, 3.0]
+            // Also inject JavaScript as backup with increasing delays
+            let delays: [Double] = [1.5, 2.5, 3.5]
             for delay in delays {
                 DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                     self.injectDeepLinkJS(url: url)
@@ -85,22 +128,62 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
     }
 
-    private func navigateToAuthSuccess(url: URL) {
+    private func navigateToAuthSuccess(url: URL, retryCount: Int = 0) {
         // Extract query params from cardscope:// URL and navigate WebView to the web auth-success page
-        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return }
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            print("📱 ERROR: Failed to parse URL components")
+            return
+        }
 
         // Build the web URL with the same query params
         var webComponents = URLComponents(string: "https://cardscope-web.vercel.app/auth-success")!
         webComponents.queryItems = components.queryItems
 
-        guard let webUrl = webComponents.url else { return }
+        guard let webUrl = webComponents.url else {
+            print("📱 ERROR: Failed to build web URL")
+            return
+        }
 
-        print("📱 Navigating WebView to: \(webUrl.absoluteString)")
+        print("📱 navigateToAuthSuccess called (attempt \(retryCount + 1))")
+        print("📱 Target URL: \(webUrl.absoluteString)")
+        print("📱 self.window: \(String(describing: self.window))")
+        print("📱 rootViewController type: \(type(of: self.window?.rootViewController ?? UIViewController()))")
 
-        // Use self.window instead of deprecated keyWindow
-        if let rootViewController = self.window?.rootViewController as? CAPBridgeViewController,
-           let bridge = rootViewController.bridge {
-            bridge.webView?.load(URLRequest(url: webUrl))
+        // Try to get WebView and navigate
+        if let rootViewController = self.window?.rootViewController as? CAPBridgeViewController {
+            print("📱 Found CAPBridgeViewController")
+            if let bridge = rootViewController.bridge {
+                print("📱 Found bridge")
+                if let webView = bridge.webView {
+                    print("📱 Found webView, current URL: \(webView.url?.absoluteString ?? "nil")")
+                    print("📱 Loading auth-success URL...")
+                    webView.load(URLRequest(url: webUrl))
+                    print("📱 ✅ URL load initiated successfully")
+                    // Clear UserDefaults since we successfully navigated
+                    UserDefaults.standard.removeObject(forKey: "pendingDeepLink")
+                    return
+                } else {
+                    print("📱 ERROR: webView is nil")
+                }
+            } else {
+                print("📱 ERROR: bridge is nil")
+            }
+        } else {
+            print("📱 ERROR: rootViewController is not CAPBridgeViewController")
+            if let vc = self.window?.rootViewController {
+                print("📱 Actual rootViewController type: \(type(of: vc))")
+            }
+        }
+
+        // Retry with exponential backoff (up to 5 attempts)
+        if retryCount < 5 {
+            let delay = Double(retryCount + 1) * 0.5 // 0.5, 1.0, 1.5, 2.0, 2.5 seconds
+            print("📱 Will retry navigation in \(delay) seconds...")
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                self.navigateToAuthSuccess(url: url, retryCount: retryCount + 1)
+            }
+        } else {
+            print("📱 ❌ Failed to navigate after \(retryCount + 1) attempts")
         }
     }
 
