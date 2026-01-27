@@ -28,6 +28,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+
+        // Check for pending deep link and process it
+        if let pendingDeepLink = UserDefaults.standard.string(forKey: "pendingDeepLink"),
+           let url = URL(string: pendingDeepLink) {
+            print("📱 Processing pending deep link on app active: \(pendingDeepLink)")
+
+            // Clear it immediately to prevent duplicate processing
+            UserDefaults.standard.removeObject(forKey: "pendingDeepLink")
+
+            // Wait for WebView to be ready, then navigate
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                self.navigateToAuthSuccess(url: url)
+            }
+
+            // Also try injecting JS as backup
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                self.injectDeepLinkJS(url: url)
+            }
+        }
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
@@ -42,29 +61,52 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if url.scheme == "cardscope" {
             print("📱 Received deep link: \(url.absoluteString)")
 
-            // Store the deep link URL to be processed when WebView is ready
+            // Store the deep link URL in UserDefaults to be processed when WebView is ready
             UserDefaults.standard.set(url.absoluteString, forKey: "pendingDeepLink")
 
-            // Inject JavaScript to notify the WebView about the deep link
-            // Try multiple times with increasing delays to ensure WebView is ready
-            let delays: [Double] = [0.5, 1.0, 2.0, 3.0]
+            // Navigate the WebView directly to the auth-success page with the query params
+            // This is more reliable than injecting JS because Safari localStorage != WebView localStorage
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.navigateToAuthSuccess(url: url)
+            }
+
+            // Also inject JavaScript as backup
+            let delays: [Double] = [1.0, 2.0, 3.0]
             for delay in delays {
                 DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                     self.injectDeepLinkJS(url: url)
                 }
             }
 
-            // Open in WebView for deep links
-            return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
+            return true
         }
 
         // For HTTP/HTTPS URLs, let Capacitor handle it
         return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
     }
 
+    private func navigateToAuthSuccess(url: URL) {
+        // Extract query params from cardscope:// URL and navigate WebView to the web auth-success page
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return }
+
+        // Build the web URL with the same query params
+        var webComponents = URLComponents(string: "https://cardscope-web.vercel.app/auth-success")!
+        webComponents.queryItems = components.queryItems
+
+        guard let webUrl = webComponents.url else { return }
+
+        print("📱 Navigating WebView to: \(webUrl.absoluteString)")
+
+        // Use self.window instead of deprecated keyWindow
+        if let rootViewController = self.window?.rootViewController as? CAPBridgeViewController,
+           let bridge = rootViewController.bridge {
+            bridge.webView?.load(URLRequest(url: webUrl))
+        }
+    }
+
     private func injectDeepLinkJS(url: URL) {
-        if let window = UIApplication.shared.keyWindow,
-           let rootViewController = window.rootViewController as? CAPBridgeViewController,
+        // Use self.window instead of deprecated keyWindow
+        if let rootViewController = self.window?.rootViewController as? CAPBridgeViewController,
            let bridge = rootViewController.bridge {
             let escapedUrl = url.absoluteString.replacingOccurrences(of: "'", with: "\\'")
             let js = """
