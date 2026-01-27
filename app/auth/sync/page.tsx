@@ -96,6 +96,7 @@ export default function AuthSyncPage() {
                 }));
 
                 setStatus("✅ Success! Redirecting...");
+                setUserData(localUser); // Store for the "Open App" button
 
                 // Short delay to ensure local storage event propagates
                 setTimeout(() => {
@@ -137,23 +138,39 @@ export default function AuthSyncPage() {
         syncSession();
     }, [router]);
 
+    // Store user data for the "Open App" button
+    const [userData, setUserData] = useState<any>(null);
+
+    const openApp = () => {
+        if (userData) {
+            const encodedUserData = encodeURIComponent(JSON.stringify(userData));
+            const appUrl = `cardscope://auth-success?status=success&userData=${encodedUserData}`;
+            window.location.href = appUrl;
+        }
+    };
+
     if (showFallback) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
                 <div className="text-center max-w-md">
                     <h2 className="text-xl font-semibold text-green-600 mb-4">✅ Authentication Complete!</h2>
                     <p className="text-gray-600 mb-4">Your Apple account has been successfully linked.</p>
-                    <p className="text-gray-500 mb-6">Please return to the <strong>CardScope</strong> app to continue.</p>
-                    <div className="bg-gray-100 p-4 rounded-lg mb-6">
-                        <p className="text-sm text-gray-600">
-                            <strong>How to return to the app:</strong><br />
-                            • Swipe up from the bottom of your screen<br />
-                            • Or tap the CardScope app icon on your home screen
-                        </p>
-                    </div>
+                    <p className="text-gray-500 mb-6">Tap the button below to return to the app.</p>
+
+                    <button
+                        onClick={openApp}
+                        className="w-full px-6 py-4 bg-black text-white rounded-lg font-semibold text-lg hover:bg-gray-800 transition mb-4"
+                    >
+                        Open CardScope App
+                    </button>
+
+                    <p className="text-xs text-gray-400 mb-4">
+                        If the button doesn't work, tap "CardCompass" in the top left corner of Safari.
+                    </p>
+
                     <button
                         onClick={() => window.close()}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+                        className="px-4 py-2 text-gray-500 text-sm hover:text-gray-700 transition"
                     >
                         Close Browser
                     </button>
