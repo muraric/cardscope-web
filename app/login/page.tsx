@@ -111,9 +111,19 @@ export default function Login() {
     const handleAppleSignIn = async () => {
         try {
             console.log("🍎 Starting Apple sign-in...");
-            console.log("📱 Is native platform:", Capacitor.isNativePlatform());
 
-            if (Capacitor.isNativePlatform()) {
+            // Check if we're in a Capacitor iOS app
+            // Capacitor.isNativePlatform() doesn't work with remote URLs, so also check user agent
+            const isCapacitorNative = Capacitor.isNativePlatform();
+            const isIOSWebView = /iPhone|iPad|iPod/.test(navigator.userAgent) &&
+                                 !(navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('CriOS'));
+            const isNativeIOS = isCapacitorNative || (isIOSWebView && window.location.hostname === 'cardscope-web.vercel.app');
+
+            console.log("📱 Is native platform:", isCapacitorNative);
+            console.log("📱 Is iOS WebView:", isIOSWebView);
+            console.log("📱 Will use native:", isNativeIOS);
+
+            if (isNativeIOS) {
                 // Native Apple Sign-In using Capacitor plugin
                 console.log("🍎 Using native Apple Sign-In");
 
