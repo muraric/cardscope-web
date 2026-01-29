@@ -107,29 +107,22 @@ export default function Login() {
         }
     };
 
-    // ✅ Sign in with Apple handler - Native on iOS, Web fallback otherwise
+    // ✅ Sign in with Apple handler
     const handleAppleSignIn = async () => {
         try {
             console.log("🍎 Starting Apple sign-in...");
 
-            // Check if we're in a Capacitor iOS app
-            // Capacitor.isNativePlatform() doesn't work with remote URLs, so also check user agent
+            // Try native Capacitor plugin first (works when app is bundled locally)
             const isCapacitorNative = Capacitor.isNativePlatform();
-            const isIOSWebView = /iPhone|iPad|iPod/.test(navigator.userAgent) &&
-                                 !(navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('CriOS'));
-            const isNativeIOS = isCapacitorNative || (isIOSWebView && window.location.hostname === 'cardscope-web.vercel.app');
+            console.log("📱 Is Capacitor native:", isCapacitorNative);
 
-            console.log("📱 Is native platform:", isCapacitorNative);
-            console.log("📱 Is iOS WebView:", isIOSWebView);
-            console.log("📱 Will use native:", isNativeIOS);
-
-            if (isNativeIOS) {
+            if (isCapacitorNative) {
                 // Native Apple Sign-In using Capacitor plugin
-                console.log("🍎 Using native Apple Sign-In");
+                console.log("🍎 Using native Apple Sign-In via Capacitor");
 
                 const options: SignInWithAppleOptions = {
-                    clientId: "com.shomuran.cardcompass", // Your app's Bundle ID
-                    redirectURI: "https://cardscope-web.vercel.app/api/auth/apple/callback", // Not used for native but required
+                    clientId: "com.shomuran.cardcompass",
+                    redirectURI: "https://cardscope-web.vercel.app/api/auth/apple/callback",
                     scopes: "email name",
                 };
 
@@ -142,7 +135,7 @@ export default function Login() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         identityToken: result.response.identityToken,
-                        user: result.response.user, // Apple's unique user ID
+                        user: result.response.user,
                         email: result.response.email,
                         givenName: result.response.givenName,
                         familyName: result.response.familyName,
@@ -152,14 +145,12 @@ export default function Login() {
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error("❌ Backend Apple auth failed:", errorText);
-                    setError("Apple sign-in failed. Please try again.");
-                    return;
+                    throw new Error("Backend verification failed");
                 }
 
                 const data = await response.json();
                 console.log("✅ Apple auth successful:", data);
 
-                // Store user in localStorage for AuthContext
                 const userData = {
                     id: data.user?.id || result.response.user || result.response.email,
                     name: data.user?.name || `${result.response.givenName || ""} ${result.response.familyName || ""}`.trim() || result.response.email?.split("@")[0],
@@ -169,28 +160,26 @@ export default function Login() {
 
                 localStorage.setItem("cardscope_user", JSON.stringify(userData));
                 window.dispatchEvent(new Event("authUpdated"));
-
-                console.log("✅ Native Apple sign-in complete, redirecting...");
                 window.location.href = "/";
-            } else {
-                // Web fallback - use NextAuth
-                console.log("🍎 Using web-based Apple Sign-In via NextAuth");
-
-                const response = await fetch("/api/auth/providers");
-                const providers = await response.json();
-
-                if (!providers.apple) {
-                    setError("Apple Sign-In is not configured. Please contact support or use another login method.");
-                    console.error("❌ Apple provider not available");
-                    return;
-                }
-
-                const callbackUrl = "/auth/sync";
-                window.location.href = `/api/auth/signin/apple?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+                return;
             }
+
+            // Web-based Apple Sign-In via NextAuth (works in browser and WebView with remote URL)
+            console.log("🍎 Using web-based Apple Sign-In via NextAuth");
+
+            const response = await fetch("/api/auth/providers");
+            const providers = await response.json();
+
+            if (!providers.apple) {
+                setError("Apple Sign-In is not configured. Please contact support or use another login method.");
+                console.error("❌ Apple provider not available");
+                return;
+            }
+
+            const callbackUrl = "/auth/sync";
+            window.location.href = `/api/auth/signin/apple?callbackUrl=${encodeURIComponent(callbackUrl)}`;
         } catch (err: any) {
             console.error("❌ Apple sign-in failed:", err);
-            // Handle user cancellation gracefully
             if (err?.message?.includes("canceled") || err?.code === "ERR_CANCELED") {
                 console.log("🍎 User cancelled Apple Sign-In");
                 return;
